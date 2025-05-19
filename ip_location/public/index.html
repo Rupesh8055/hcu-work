@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IP Location Finder</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #74ebd5, #acb6e5);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            width: 100%;
+            max-width: 500px;
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+        .container:hover {
+            transform: translateY(-5px);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 28px;
+            font-weight: 600;
+        }
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        input {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            outline: none;
+            transition: border-color 0.3s ease;
+        }
+        input:focus {
+            border-color: #74ebd5;
+        }
+        button {
+            padding: 12px 24px;
+            background: #74ebd5;
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.3s ease, transform 0.1s ease;
+        }
+        button:hover {
+            background: #66d3c1;
+        }
+        button:active {
+            transform: scale(0.95);
+        }
+        #result {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f9f9f9;
+            border-radius: 8px;
+            text-align: left;
+        }
+        #result p {
+            margin: 8px 0;
+            color: #555;
+            font-size: 16px;
+        }
+        #result p b {
+            color: #333;
+        }
+        .error {
+            color: #e74c3c;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>IP Location Finder</h1>
+        <div class="input-group">
+            <input type="text" id="ipInput" placeholder="Enter IP (e.g., 8.8.8.8)">
+            <button onclick="lookupIP()">Find Location</button>
+        </div>
+        <div id="result"></div>
+    </div>
+
+    <script>
+        async function lookupIP() {
+            const ip = document.getElementById('ipInput').value;
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = '';
+
+            try {
+                const response = await fetch(`http://localhost:3000/ip-lookup?ip=${encodeURIComponent(ip)}`);
+                const data = await response.json();
+
+                if (response.ok) {
+                    resultDiv.innerHTML = `
+                        <p><b>IP:</b> ${data.ip}</p>
+                        <p><b>Country:</b> ${data.country}</p>
+                        <p><b>City:</b> ${data.city}</p>
+                        <p><b>Latitude:</b> ${data.latitude}</p>
+                        <p><b>Longitude:</b> ${data.longitude}</p>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `<p class="error">${data.error}</p>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<p class="error">Failed to connect to server</p>`;
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,1 @@
+This tool includes GeoLite2 data created by MaxMind, available from https://www.maxmind.com.
