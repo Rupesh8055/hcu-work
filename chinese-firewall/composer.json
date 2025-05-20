@@ -1,0 +1,10 @@
+{
+    "require": {
+        "pear/net_dns2": "^1.5"
+    },
+    "autoload": {
+        "classmap": [
+            "vendor/pear/net_dns2/Net/"
+        ]
+    }
+}
