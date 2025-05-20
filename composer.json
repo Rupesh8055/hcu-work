@@ -1,5 +1,0 @@
-{
-    "require": {
-        "pear/net_dns2": "^1.5"
-    }
-}

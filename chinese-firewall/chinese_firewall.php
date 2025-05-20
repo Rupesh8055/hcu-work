@@ -1,19 +1,17 @@
 <?php
 
-// Require Net_DNS2 for custom DNS queries
 $autoload_path = __DIR__ . '/vendor/autoload.php';
 if (!file_exists($autoload_path)) {
     die('Fatal Error: Composer autoload file not found at ' . $autoload_path . '. Run "composer require pear/net_dns2" in ' . __DIR__ . '.');
 }
 require_once $autoload_path;
 
-use Net_DNS2\Resolver;
+use Net_DNS2_Resolver as Resolver;
 
 // Verify Net_DNS2\Resolver class exists
-if (!class_exists('Net_DNS2\Resolver')) {
-    die('Fatal Error: Net_DNS2\Resolver class not found. Ensure "pear/net_dns2" is installed via Composer and vendor/autoload.php is correctly set up.');
-}
-
+if (!class_exists('Net_DNS2_Resolver')) {
+    die('Fatal Error: Net_DNS2_Resolver class not found. Ensure "pear/net_dns2" is properly installed.');
+} 
 // List of trusted DNS servers for fallback
 $TRUSTED_DNS_SERVERS = [
     ['name' => 'Google', 'ip' => '8.8.8.8'],
