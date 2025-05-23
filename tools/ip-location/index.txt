@@ -1,0 +1,103 @@
+<?php
+function render_header() {
+    echo '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>IP Location Finder</title>';
+    echo '<link rel="icon" type="image/png" href="/favicon.png">';
+    echo '<style>
+        body { font-family: Segoe UI, Arial, sans-serif; background: #f6f8fa; margin: 0; }
+        .container { max-width: 1150px; margin: 30px auto; background: #fff; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); padding: 32px 32px 24px 32px; }
+        h1 { font-size: 2rem; font-weight: 600; margin-bottom: 8px; }
+        .desc { color: #555; margin-bottom: 24px; }
+        .search-box { display: flex; gap: 12px; margin-bottom: 24px; }
+        .search-box input { flex: 1; padding: 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 1rem; box-shadow: 0 1px 2px rgba(0,0,0,0.03); }
+        .search-box button { background: #7a0000; color: #fff; border: none; border-radius: 6px; padding: 0 28px; font-size: 1rem; font-weight: 600; cursor: pointer; box-shadow: 0 1px 2px rgba(0,0,0,0.04); transition: background 0.2s; }
+        .search-box button:hover { background: #5a0000; }
+        .results-header { font-size: 1.2rem; font-weight: 500; margin: 24px 0 8px 0; }
+        .results-table { width: 100%; border-collapse: collapse; margin-top: 16px; }
+        .results-table th, .results-table td { text-align: left; padding: 12px 8px; border-bottom: 1px solid #e5e7eb; }
+        .results-table th { background: #f3f4f6; color: #444; font-weight: 600; }
+        .results-table tr:last-child td { border-bottom: none; }
+        .error { color: red; margin-bottom: 16px; }
+    </style>';
+    echo '</head><body>';
+}
+
+function render_main() {
+    $query = isset($_GET['ip']) ? trim($_GET['ip']) : '';
+    echo '<div class="container">';
+    echo '<h1>IP Location Finder</h1>';
+    echo '<div class="desc">This tool will display geographic information about a supplied IP address including city, country, latitude, longitude and more.</div>';
+    echo '<form class="search-box" onsubmit="fetchLocation(event)">';
+    echo '<input type="text" id="ipInput" name="ip" placeholder="Enter IP address" value="' . htmlspecialchars($query) . '" required />';
+    echo '<button type="submit">Find</button>';
+    echo '</form>';
+    echo '<div id="error" class="error" style="display: none;"></div>';
+    echo '<div id="results" style="display: none;">';
+    echo '<div class="results-header" id="resultsHeader"></div>';
+    echo '<table class="results-table" id="resultsTable">';
+    echo '<thead>';
+    echo '<tr>';
+    echo '<th>IP Address</th>';
+    echo '<th>Country</th>';
+    echo '<th>Region</th>';
+    echo '<th>City</th>';
+    echo '<th>Postal Code</th>';
+    echo '<th>Latitude</th>';
+    echo '<th>Longitude</th>';
+    echo '<th>Timezone</th>';
+    echo '</tr>';
+    echo '</thead>';
+    echo '<tbody id="resultsBody"></tbody>';
+    echo '</table>';
+    echo '</div>';
+    echo '</div>';
+}
+
+function render_footer() {
+    echo '<script>';
+    echo 'async function fetchLocation(event) {';
+    echo '    event.preventDefault();';
+    echo '    const ip = document.getElementById("ipInput").value;';
+    echo '    const url = ip ? `ip_location.php?ip=${encodeURIComponent(ip)}` : "ip_location.php";';
+    echo '    const errorDiv = document.getElementById("error");';
+    echo '    const resultsDiv = document.getElementById("results");';
+    echo '    const resultsHeader = document.getElementById("resultsHeader");';
+    echo '    const resultsBody = document.getElementById("resultsBody");';
+    echo '    errorDiv.style.display = "none";';
+    echo '    resultsDiv.style.display = "none";';
+    echo '    try {';
+    echo '        const response = await fetch(url);';
+    echo '        const text = await response.text();'; // Log raw response
+    echo '        console.log("Raw response:", text);'; // Debug raw response
+    echo '        if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);';
+    echo '        const data = JSON.parse(text);'; // Parse JSON explicitly
+    echo '        if (data.error) {';
+    echo '            errorDiv.textContent = data.error;';
+    echo '            errorDiv.style.display = "block";';
+    echo '            return;';
+    echo '        }';
+    echo '        resultsHeader.textContent = `IP Location Results for ${ip}`;';
+    echo '        resultsBody.innerHTML = `';
+    echo '            <tr>';
+    echo '                <td>${data.ip}</td>';
+    echo '                <td>${data.country}</td>';
+    echo '                <td>${data.region}</td>';
+    echo '                <td>${data.city}</td>';
+    echo '                <td>${data.postal_code}</td>';
+    echo '                <td>${data.latitude}</td>';
+    echo '                <td>${data.longitude}</td>';
+    echo '                <td>${data.timezone}</td>';
+    echo '            </tr>`;';
+    echo '        resultsDiv.style.display = "block";';
+    echo '    } catch (error) {';
+    echo '        errorDiv.textContent = "Error fetching location data: " + error.message;';
+    echo '        errorDiv.style.display = "block";';
+    echo '    }';
+    echo '}';
+    echo '</script>';
+    echo '</body></html>';
+}
+
+render_header();
+render_main();
+render_footer();
+?>
