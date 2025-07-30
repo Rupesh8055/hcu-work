@@ -29,12 +29,12 @@ function render_footer() {
 function render_main() {
     $query = isset($_GET['ip']) ? trim($_GET['ip']) : '';
     $tab = isset($_GET['tab']) ? $_GET['tab'] : 'html';
-    $result = $query !== '' ? '' : '';
+    $result = $query !== '' ? find_abuse_contact($query) : [];
     echo '<div class="container">';
     echo '<h1>Abuse Lookup</h1>';
-    echo '<div class="desc">Check if an IP address is listed in abuse or block lists. Useful for email deliverability and security checks.</div>';
+    echo '<div class="desc">Find the abuse contact address for a domain name. This is where you would send complaints about spam originating from that domain.</div>';
     echo '<form class="search-box" method="get">';
-    echo '<input type="text" name="ip" placeholder="Enter IP address (e.g. 8.8.8.8)" value="' . htmlspecialchars($query) . '" required />';
+    echo '<input type="text" name="ip" placeholder="Enter IP address or domain (e.g., 8.8.8.8 or example.com)" value="' . htmlspecialchars($query) . '" required />';
     echo '<button type="submit">Lookup</button>';
     echo '</form>';
     if ($query !== '') {
@@ -48,14 +48,39 @@ function render_main() {
         echo '<div style="position:relative;box-shadow:0 2px 8px rgba(0,0,0,0.08);border-radius:0 0 12px 12px;background:#fff;padding:32px 32px 16px 32px;margin-bottom:32px;">';
         echo '<div class="results-header" style="margin-top:0;">Abuse lookup result for <b>' . htmlspecialchars($query) . '</b></div>';
         if ($tab === 'json') {
+            $response = isset($result['error']) ? ['error' => $result['error']] : $result;
             $json = [
-                "query" => ["tool" => "abuse-lookup", "ip" => $query],
-                "response" => ["result" => $result]
+                "query" => ["tool" => "abuse-lookup", "input" => $query],
+                "response" => [
+                    "registrar" => $result['registrar'],
+                    "whois_abuse" => $result['whois_abuse'],
+                    "abuse_net" => $result['abuse_net']
+                ]
             ];
             $json_str = json_encode($json, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
             echo '<pre>' . htmlspecialchars($json_str) . '</pre>';
         } else {
-            echo '<pre>' . htmlspecialchars($result) . '</pre>';
+            if (isset($result['error'])) {
+                echo '<pre style="color:red;">' . htmlspecialchars($result['error']) . '</pre>';
+            } else {
+                $output = [];
+                if ($result['registrar']) {
+                    $output[] = 'Domain Registrar: ' . htmlspecialchars($result['registrar']);
+                }
+                if ($result['whois_abuse']) {
+                    $output[] = 'Abuse contact from WHOIS: ' . htmlspecialchars($result['whois_abuse']);
+                }
+                if ($result['abuse_net']) {
+                    $output[] = 'Abuse contact from abuse.net: ' . htmlspecialchars($result['abuse_net']);
+                }
+
+                if (empty($output)) {
+                    echo '<p>Could not find specific abuse information. Displaying full WHOIS record:</p>';
+                    echo '<pre>' . htmlspecialchars($result['full_record']) . '</pre>';
+                } else {
+                    echo '<pre>' . implode("\n", $output) . '</pre>';
+                }
+            }
         }
         echo '</div>';
     }
