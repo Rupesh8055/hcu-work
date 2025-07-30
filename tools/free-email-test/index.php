@@ -1,5 +1,4 @@
 <?php
-// Modern UI for Free Email Test Tool, inspired by reverse-mx-lookup
 require_once __DIR__ . '/backend.php';
 
 function render_header() {
@@ -29,7 +28,8 @@ function render_footer() {
 function render_main() {
     $query = isset($_GET['email']) ? trim($_GET['email']) : '';
     $tab = isset($_GET['tab']) ? $_GET['tab'] : 'html';
-    $result = $query !== '' ? '' : '';
+    $result = $query !== '' ? check_email_domain($query) : '';
+
     echo '<div class="container">';
     echo '<h1>Free Email Test</h1>';
     echo '<div class="desc">Check if an email address is from a free provider (like Gmail, Yahoo, Outlook, etc). Useful for signup validation and fraud prevention.</div>';
@@ -37,6 +37,7 @@ function render_main() {
     echo '<input type="text" name="email" placeholder="Enter email address (e.g. user@gmail.com)" value="' . htmlspecialchars($query) . '" required />';
     echo '<button type="submit">Test</button>';
     echo '</form>';
+
     if ($query !== '') {
         $html_active = $tab === 'html' ? 'active' : '';
         $json_active = $tab === 'json' ? 'active' : '';
@@ -47,6 +48,7 @@ function render_main() {
         echo '</div>';
         echo '<div style="position:relative;box-shadow:0 2px 8px rgba(0,0,0,0.08);border-radius:0 0 12px 12px;background:#fff;padding:32px 32px 16px 32px;margin-bottom:32px;">';
         echo '<div class="results-header" style="margin-top:0;">Free email test result for <b>' . htmlspecialchars($query) . '</b></div>';
+
         if ($tab === 'json') {
             $json = [
                 "query" => ["tool" => "free-email-test", "email" => $query],
@@ -57,8 +59,10 @@ function render_main() {
         } else {
             echo '<pre>' . htmlspecialchars($result) . '</pre>';
         }
+
         echo '</div>';
     }
+
     echo '</div>';
 }
 
