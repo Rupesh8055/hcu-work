@@ -1,6 +1,6 @@
 # 🛠️ Cyber Tools Suite
 
-A comprehensive collection of **25+ cybersecurity and network diagnostic tools** built with PHP, following the MVC (Model-View-Controller) architecture pattern. All tools are **fully functional**, **optimized for performance**, and **production-ready**.
+A comprehensive collection of **26 cybersecurity and network diagnostic tools** built with PHP, following the MVC (Model-View-Controller) architecture pattern. All tools are **fully functional**, **optimized for performance**, and **production-ready**.
 
 ## 🌟 **Complete Tool Suite**
 
@@ -115,44 +115,6 @@ A comprehensive collection of **25+ cybersecurity and network diagnostic tools**
 - **Server**: Apache/Nginx compatible
 - **Performance**: Optimized timeouts and caching
 
-## 🚀 **Installation**
-
-### **Prerequisites**
-
-- PHP 7.4 or higher
-- MySQL/MariaDB database
-- Apache/Nginx web server
-- cURL extension enabled
-- OpenSSL extension enabled
-
-### **Quick Setup**
-
-1. **Clone or Download**
-
-   ```bash
-   git clone [repository-url]
-   cd tools
-   ```
-
-2. **Database Configuration**
-
-   ```php
-   # Update db.php with your credentials
-   define('DB_HOST', 'your-database-host');
-   define('DB_USER', 'your-database-user');
-   define('DB_PASSWORD', 'your-database-password');
-   define('DB_NAME', 'your-database-name');
-   ```
-
-3. **Web Server Configuration**
-
-   - Point web server to project directory
-   - Ensure PHP write permissions for `logs/` directory
-
-4. **Security Setup**
-   - Review `security/config.php` settings
-   - Update allowed origins as needed
-
 ## 🔧 **Configuration**
 
 ### **Security Features**
@@ -170,42 +132,6 @@ Automatically created tables:
 - `lookup_logs` - Complete activity logging
 - `rate_limits` - Rate limiting data
 - `security_events` - Security event logging
-
-## 📖 **Usage**
-
-### **API Endpoints**
-
-Each tool provides RESTful API endpoints:
-
-```
-GET /[tool-name]/backend.php?[parameters]
-```
-
-**Examples:**
-
-```
-GET /dns-lookup/backend.php?domain=example.com
-GET /spam-database/backend.php?query=127.0.0.2
-GET /port-scanner/backend.php?ip=192.168.1.1
-GET /site-down-checker/backend.php?url=example.com
-```
-
-### **Response Format**
-
-All tools return standardized JSON responses:
-
-```json
-{
-  "query": "example.com",
-  "resolved_ip": "93.184.216.34",
-  "results": [...],
-  "summary": {
-    "status": "success",
-    "response_time": "1234.56ms"
-  },
-  "timestamp": "2024-01-01 12:00:00"
-}
-```
 
 ## 🛡️ **Security Features**
 
@@ -241,39 +167,6 @@ All tools return standardized JSON responses:
 - `logs/php_errors.log` - PHP error logs
 - `logs/rate_limit.log` - Rate limiting events
 - `logs/spam_cache.json` - Spam database cache
-
-## 🔄 **API Integration**
-
-### **JavaScript Integration**
-
-```javascript
-// Example: Spam Database Check
-fetch("/spam-database/backend.php?query=127.0.0.2")
-  .then((response) => response.json())
-  .then((data) => {
-    console.log("Listed:", data.summary.listed_count);
-    console.log("Risk Level:", data.summary.risk_level);
-  });
-
-// Example: Site Down Checker
-fetch("/site-down-checker/backend.php?url=example.com")
-  .then((response) => response.json())
-  .then((data) => {
-    console.log("Status:", data.status);
-    console.log("Response Time:", data.response_time);
-  });
-```
-
-### **Error Handling**
-
-```javascript
-fetch("/tool/backend.php?param=value")
-  .then((response) => {
-    if (!response.ok) throw new Error("Network error");
-    return response.json();
-  })
-  .catch((error) => console.error("Error:", error));
-```
 
 ## 🧪 **Testing**
 
@@ -378,7 +271,7 @@ This project is licensed under the MIT License.
 
 ## 🎯 **Ready to Use**
 
-**All 25+ tools are fully functional and optimized!**
+**Almost all tools are fully functional and optimized!**
 
 - ✅ **No timeouts** - All tools complete within reasonable time
 - ✅ **Real results** - Accurate detection and reporting
@@ -387,7 +280,3 @@ This project is licensed under the MIT License.
 - ✅ **Production ready** - Deploy immediately
 
 **Start exploring the tools now!** 🚀
-
----
-
-_Built with ❤️ for the cybersecurity community - All tools tested and verified_
