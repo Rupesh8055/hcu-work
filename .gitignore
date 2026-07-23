@@ -1,0 +1,9 @@
+cache/*
+!cache/.gitkeep
+logs/*.log
+logs/*.txt
+scratch/
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db

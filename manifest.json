@@ -1,0 +1,25 @@
+{
+  "name": "Cyber Jagrithi Tools",
+  "short_name": "CyberTools",
+  "start_url": "/tools/index.html",
+  "display": "standalone",
+  "background_color": "#f6f8fa",
+  "theme_color": "#800000",
+  "icons": [
+    {
+      "src": "favicon.png",
+      "sizes": "32x32",
+      "type": "image/png"
+    },
+    {
+      "src": "favicon.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "favicon.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

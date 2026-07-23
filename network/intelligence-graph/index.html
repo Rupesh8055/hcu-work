@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Intelligence Graph</title>
+    <meta name="description" content="Visualize connections between domains, IP addresses, registrants, organizations, and infrastructure. Explore the digital footprint interactively.">
+    <link rel="icon" type="image/png" href="../../favicon.png" />
+    <script type="text/javascript" src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+    <style>
+      body {
+        font-family: Segoe UI, Arial, sans-serif;
+        background: #f6f8fa;
+        margin: 0;
+      }
+      .container {
+        max-width: 1200px;
+        margin: 30px auto;
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        padding: 32px;
+      }
+      h1 {
+        font-size: 2rem;
+        font-weight: 600;
+        margin-bottom: 8px;
+        color: #333;
+      }
+      .desc {
+        color: #555;
+        margin-bottom: 24px;
+      }
+      .search-box {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 24px;
+      }
+      .search-box input {
+        flex: 1;
+        padding: 12px;
+        border: 1px solid #d1d5db;
+        border-radius: 6px;
+        font-size: 1rem;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+      }
+      .search-box button {
+        background: #7a0000;
+        color: #fff;
+        border: none;
+        border-radius: 6px;
+        padding: 0 28px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.2s, opacity 0.2s;
+        min-width: 120px;
+      }
+      .search-box button:hover {
+        background: #5a0000;
+      }
+      .search-box button:disabled {
+        background: #7a0000;
+        opacity: 0.7;
+        cursor: not-allowed;
+      }
+      .loading-spinner-btn {
+        display: inline-block;
+        width: 12px;
+        height: 12px;
+        border: 2px solid #fff;
+        border-top: 2px solid transparent;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin-right: 8px;
+        vertical-align: middle;
+      }
+      .results-section {
+        display: none;
+        margin-top: 24px;
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        box-shadow: 0 1px 4px rgba(15, 23, 42, 0.08);
+        padding: 12px 16px 20px 16px;
+      }
+      .results-header {
+        display: flex;
+        justify-content: flex-start;
+        align-items: center;
+        margin-bottom: 16px;
+      }
+      .results-title {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: #333;
+        margin: 0;
+      }
+      .error-msg {
+        color: #b91c1c;
+        background: #fee2e2;
+        padding: 12px 16px;
+        border-radius: 6px;
+        margin-bottom: 16px;
+        font-weight: 500;
+        border-left: 4px solid #b91c1c;
+        display: none;
+        margin-top: 24px;
+      }
+      #network {
+        width: 100%;
+        height: 600px;
+        border: 1px solid lightgray;
+        background-color: #fafbfc;
+        border-radius: 6px;
+      }
+      .legend {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 16px;
+        margin-top: 16px;
+        padding: 16px;
+        background: #f8f9fa;
+        border-radius: 6px;
+        font-size: 0.9rem;
+      }
+      .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .legend-color {
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+      }
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+      #header-include header h1 a { color: #fff !important; }
+    </style>
+  </head>
+  <body>
+    <div id="header-include"></div>
+    <div class="container">
+      <h1>Intelligence Graph</h1>
+      <div class="desc">
+        Visualize connections between domains, IP addresses, registrants, organizations, and infrastructure. Explore the digital footprint interactively. 
+        Note: The graph is built from historical observations and internal intelligence mapping.
+      </div>
+      <form class="search-box" id="graphForm" autocomplete="off">
+        <input
+          type="text"
+          id="query"
+          placeholder="Enter domain or IP address"
+          required
+        />
+        <button type="submit" id="submitBtn">Build Graph</button>
+      </form>
+      <div id="error-msg" class="error-msg"></div>
+      <div class="results-section" id="resultsSection" style="display:none;">
+        <div class="results-header">
+          <h3 class="results-title" id="resultsTitle">Graph Visualization</h3>
+        </div>
+        <div id="network"></div>
+        <div class="legend">
+          <div class="legend-item"><div class="legend-color" style="background:#ff6b6b"></div>Domain</div>
+          <div class="legend-item"><div class="legend-color" style="background:#4dabf7"></div>IP Address</div>
+          <div class="legend-item"><div class="legend-color" style="background:#51cf66"></div>Registrant/Person</div>
+          <div class="legend-item"><div class="legend-color" style="background:#fcc419"></div>Organization</div>
+          <div class="legend-item"><div class="legend-color" style="background:#cc5de8"></div>Email</div>
+          <div class="legend-item"><div class="legend-color" style="background:#868e96"></div>Nameserver</div>
+        </div>
+      </div>
+    </div>
+    <div id="footer-include"></div>
+    <script src="../../assets/js/utils.js"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        if (window.CJ && window.CJ.loadHeaderFooter) {
+            window.CJ.loadHeaderFooter("../../");
+        }
+      });
+    </script>
+    <script>
+      (function () {
+        const form = document.getElementById("graphForm");
+        const input = document.getElementById("query");
+        const submitBtn = document.getElementById("submitBtn");
+        const resultsSection = document.getElementById("resultsSection");
+        const resultsTitle = document.getElementById("resultsTitle");
+        const errorMsg = document.getElementById("error-msg");
+        const networkContainer = document.getElementById("network");
+        let network = null;
+
+        const colors = {
+            'domain': { background: '#ff6b6b', border: '#e03131' },
+            'ip': { background: '#4dabf7', border: '#228be6' },
+            'registrant': { background: '#51cf66', border: '#40c057' },
+            'organization': { background: '#fcc419', border: '#fab005' },
+            'email': { background: '#cc5de8', border: '#be4bdb' },
+            'nameserver': { background: '#868e96', border: '#495057' }
+        };
+
+        const icons = {
+            'domain': '🌐',
+            'ip': '💻',
+            'registrant': '👤',
+            'organization': '🏢',
+            'email': '📧',
+            'nameserver': '⚙️'
+        };
+
+        form.addEventListener("submit", async function (e) {
+          e.preventDefault();
+          const query = input.value.trim();
+          if (!query) return;
+          
+          errorMsg.style.display = "none";
+          resultsSection.style.display = "none";
+          const originalButtonText = submitBtn.textContent;
+          submitBtn.innerHTML = '<span class="loading-spinner-btn"></span>Building...';
+          submitBtn.disabled = true;
+
+          try {
+            const resp = await fetch(`backend.php?query=${encodeURIComponent(query)}`);
+            const data = await resp.json();
+            
+            if (data && data.error) {
+              errorMsg.textContent = data.error;
+              errorMsg.style.display = "block";
+              return;
+            }
+
+            if (data && data.response && data.response.error) {
+                errorMsg.textContent = data.response.error;
+                errorMsg.style.display = "block";
+                return;
+            }
+
+            resultsSection.style.display = "block";
+            resultsTitle.textContent = `Graph for '${query}'`;
+
+            const rawNodes = data.response.nodes || [];
+            const rawEdges = data.response.edges || [];
+
+            if (rawNodes.length === 0) {
+                errorMsg.textContent = "No relational data found for this entity in the platform's intelligence graph.";
+                errorMsg.style.display = "block";
+                resultsSection.style.display = "none";
+                return;
+            }
+
+            const visNodes = new vis.DataSet(rawNodes.map(n => {
+                const group = n.group || 'domain';
+                const color = colors[group] || colors['domain'];
+                const icon = icons[group] || '';
+                return {
+                    id: n.id,
+                    label: icon + ' ' + n.label,
+                    title: n.label,
+                    color: color,
+                    shape: 'box',
+                    font: { color: '#fff', face: 'Segoe UI' },
+                    margin: 10
+                };
+            }));
+
+            const visEdges = new vis.DataSet(rawEdges.map((e, idx) => {
+                return {
+                    id: e.from + '_' + e.to + '_' + idx,
+                    from: e.from,
+                    to: e.to,
+                    label: e.label,
+                    font: { size: 12, align: 'middle', face: 'Segoe UI', color: '#666' },
+                    arrows: 'to',
+                    color: { color: '#ced4da', highlight: '#868e96' },
+                    smooth: { type: 'continuous' }
+                };
+            }));
+
+            const container = networkContainer;
+            const graphData = { nodes: visNodes, edges: visEdges };
+            const options = {
+                physics: {
+                    barnesHut: {
+                        gravitationalConstant: -2000,
+                        centralGravity: 0.3,
+                        springLength: 150,
+                        springConstant: 0.04,
+                        damping: 0.09
+                    },
+                    stabilization: { iterations: 150 }
+                },
+                interaction: {
+                    hover: true,
+                    tooltipDelay: 200
+                }
+            };
+
+            if (network) network.destroy();
+            network = new vis.Network(container, graphData, options);
+
+          } catch (err) {
+            errorMsg.textContent = "An error occurred while building the intelligence graph.";
+            errorMsg.style.display = "block";
+            console.error(err);
+          } finally {
+            submitBtn.textContent = originalButtonText;
+            submitBtn.disabled = false;
+          }
+        });
+
+        window.CJ.autoLookup("graphForm", "query");
+      })();
+    </script>
+  </body>
+</html>

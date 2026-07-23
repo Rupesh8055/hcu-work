@@ -1,0 +1,1289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cyber Threat Investigator Dossier Panel</title>
+    <meta name="description" content="Advanced multi-node cyber intelligence reconnaissance console. Scans chronological footprint timelines, maps network relationships, geolocates targets, and detects coordinated threat networks.">
+    
+    <!-- Google Fonts for premium modern typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <link rel="icon" type="image/png" href="../../favicon.png" />
+    
+    <!-- Custom styling with glassmorphism, dark aesthetic, and neon accents -->
+    <style>
+        :root {
+            --bg-base: #090d16;
+            --bg-surface: #0f172a;
+            --bg-card: rgba(30, 41, 59, 0.45);
+            --border-glow: rgba(56, 189, 248, 0.15);
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --accent-cyan: #38bdf8;
+            --accent-glow: #0284c7;
+            --accent-red: #f43f5e;
+            --accent-amber: #f59e0b;
+            --accent-green: #10b981;
+            --font-outfit: 'Outfit', sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+        }
+
+        body {
+            font-family: var(--font-outfit);
+            background: var(--bg-base);
+            background-image: radial-gradient(circle at 10% 20%, rgba(2, 132, 199, 0.08) 0%, transparent 45%),
+                              radial-gradient(circle at 90% 80%, rgba(244, 63, 94, 0.05) 0%, transparent 45%);
+            background-attachment: fixed;
+            color: var(--text-primary);
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 40px 24px;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(51, 65, 85, 0.5);
+            padding-bottom: 24px;
+            margin-bottom: 40px;
+        }
+
+        .header-title-section h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin: 0 0 6px 0;
+            letter-spacing: -0.02em;
+            background: linear-gradient(135deg, #f8fafc 40%, var(--accent-cyan));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header-title-section p {
+            color: var(--text-secondary);
+            margin: 0;
+            font-size: 1.1rem;
+            font-weight: 300;
+        }
+
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid rgba(71, 85, 105, 0.5);
+            color: var(--text-primary);
+            text-decoration: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .back-btn:hover {
+            background: var(--accent-cyan);
+            color: #0f172a;
+            border-color: var(--accent-cyan);
+            box-shadow: 0 0 20px rgba(56, 189, 248, 0.4);
+            transform: translateY(-2px);
+        }
+
+        /* Investigator Command Console Input */
+        .search-container {
+            background: var(--bg-card);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(16px);
+            border-radius: 16px;
+            padding: 32px;
+            margin-bottom: 40px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .search-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, var(--accent-cyan), var(--accent-red));
+        }
+
+        .search-form {
+            display: flex;
+            gap: 16px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .search-input-wrapper {
+            position: relative;
+            flex: 1;
+        }
+
+        .search-input-wrapper svg {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-secondary);
+            width: 20px;
+            height: 20px;
+        }
+
+        .search-form input {
+            width: 100%;
+            padding: 16px 16px 16px 52px;
+            background: rgba(15, 23, 42, 0.9);
+            border: 1px solid rgba(71, 85, 105, 0.6);
+            border-radius: 10px;
+            color: var(--text-primary);
+            font-size: 1.1rem;
+            font-family: var(--font-outfit);
+            transition: all 0.3s;
+            box-sizing: border-box;
+        }
+
+        .search-form input:focus {
+            outline: none;
+            border-color: var(--accent-cyan);
+            box-shadow: 0 0 15px rgba(56, 189, 248, 0.25);
+            background: #0f172a;
+        }
+
+        .search-form button {
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-glow));
+            color: #0f172a;
+            border: none;
+            border-radius: 10px;
+            padding: 0 36px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 14px rgba(2, 132, 199, 0.4);
+        }
+
+        .search-form button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(56, 189, 248, 0.6);
+        }
+
+        .search-form button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 3px solid rgba(15, 23, 42, 0.3);
+            border-top: 3px solid #0f172a;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-right: 10px;
+            vertical-align: middle;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Error Banner */
+        .error-banner {
+            display: none;
+            background: rgba(244, 63, 94, 0.15);
+            border: 1px solid rgba(244, 63, 94, 0.3);
+            color: var(--accent-red);
+            border-left: 4px solid var(--accent-red);
+            padding: 16px 24px;
+            border-radius: 8px;
+            margin-bottom: 40px;
+            font-weight: 500;
+            backdrop-filter: blur(8px);
+        }
+
+        /* Results Dossier Frame */
+        .dossier-frame {
+            display: none;
+        }
+
+        .dossier-header-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 16px 24px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            backdrop-filter: blur(12px);
+        }
+
+        .dossier-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--accent-cyan);
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .dossier-title span {
+            background: rgba(56, 189, 248, 0.1);
+            border: 1px solid rgba(56, 189, 248, 0.2);
+            color: var(--text-primary);
+            padding: 2px 10px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+        }
+
+        .action-controls {
+            display: flex;
+            gap: 12px;
+        }
+
+        .format-tabs {
+            display: flex;
+            background: rgba(30, 41, 59, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 6px;
+            padding: 4px;
+            gap: 4px;
+        }
+
+        .format-tab {
+            background: none;
+            border: none;
+            padding: 6px 14px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            font-family: var(--font-outfit);
+            transition: all 0.2s;
+        }
+
+        .format-tab.active {
+            background: var(--accent-cyan);
+            color: #0f172a;
+        }
+
+        .action-btn {
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 6px;
+            color: var(--text-primary);
+            cursor: pointer;
+            padding: 8px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .action-btn:hover {
+            border-color: var(--accent-cyan);
+            color: var(--accent-cyan);
+            background: rgba(56, 189, 248, 0.05);
+        }
+
+        .action-btn svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        /* Dossier Content Views */
+        .tab-content {
+            background: transparent;
+        }
+
+        .json-view {
+            display: none;
+            background: #0b0f19;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 24px;
+            font-family: var(--font-mono);
+            font-size: 0.9rem;
+            color: var(--accent-cyan);
+            white-space: pre-wrap;
+            overflow-x: auto;
+            max-height: 800px;
+            box-shadow: inset 0 2px 10px rgba(0,0,0,0.8);
+        }
+
+        /* Dashboard HTML layout */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        @media (max-width: 1024px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .glass-card {
+            background: var(--bg-card);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            padding: 28px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(20px);
+            position: relative;
+        }
+
+        .glass-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border-radius: 16px;
+            box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.1);
+            pointer-events: none;
+        }
+
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin: 0 0 20px 0;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            padding-bottom: 12px;
+        }
+
+        .card-title span {
+            color: var(--accent-cyan);
+            font-size: 0.9rem;
+            font-family: var(--font-mono);
+        }
+
+        /* Reputation Score Card Widgets */
+        .reputation-widget {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        .score-radial {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            background: radial-gradient(circle, #1e293b 60%, transparent 100%);
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.4);
+            margin-bottom: 16px;
+        }
+
+        .score-radial-progress {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 8px solid rgba(255, 255, 255, 0.02);
+            box-sizing: border-box;
+        }
+
+        .score-radial-value {
+            font-size: 2.2rem;
+            font-weight: 800;
+            color: var(--text-primary);
+        }
+
+        .score-label {
+            font-size: 1rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .risk-rating-badge {
+            display: inline-block;
+            padding: 6px 16px;
+            border-radius: 30px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            margin-top: 10px;
+            letter-spacing: 0.02em;
+        }
+
+        .rating-critical {
+            background: rgba(244, 63, 94, 0.15);
+            border: 1px solid rgba(244, 63, 94, 0.3);
+            color: var(--accent-red);
+            box-shadow: 0 0 15px rgba(244, 63, 94, 0.2);
+        }
+
+        .rating-medium {
+            background: rgba(245, 158, 11, 0.15);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            color: var(--accent-amber);
+            box-shadow: 0 0 15px rgba(245, 158, 11, 0.2);
+        }
+
+        .rating-low {
+            background: rgba(16, 185, 129, 0.15);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            color: var(--accent-green);
+            box-shadow: 0 0 15px rgba(16, 185, 129, 0.2);
+        }
+
+        /* Simple linear metrics */
+        .bar-metric {
+            width: 100%;
+            margin-bottom: 18px;
+        }
+
+        .bar-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.9rem;
+            margin-bottom: 6px;
+            color: var(--text-secondary);
+        }
+
+        .bar-outer {
+            width: 100%;
+            height: 10px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 20px;
+            overflow: hidden;
+        }
+
+        .bar-inner {
+            height: 100%;
+            border-radius: 20px;
+            transition: width 1s ease-in-out;
+        }
+
+        /* Threat Indicator Cards */
+        .risk-indicators-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .risk-indicator-item {
+            background: rgba(15, 23, 42, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            border-radius: 8px;
+            padding: 14px;
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+        }
+
+        .risk-indicator-item.SEV-CRITICAL, .risk-indicator-item.SEV-HIGH {
+            border-left: 3px solid var(--accent-red);
+        }
+
+        .risk-indicator-item.SEV-MEDIUM {
+            border-left: 3px solid var(--accent-amber);
+        }
+
+        .risk-indicator-item.SEV-LOW {
+            border-left: 3px solid var(--accent-cyan);
+        }
+
+        .indicator-badge {
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 2px 6px;
+            border-radius: 4px;
+            text-transform: uppercase;
+        }
+
+        .badge-critical, .badge-high {
+            background: rgba(244, 63, 94, 0.1);
+            color: var(--accent-red);
+            border: 1px solid rgba(244, 63, 94, 0.2);
+        }
+
+        .badge-medium {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--accent-amber);
+            border: 1px solid rgba(245, 158, 11, 0.2);
+        }
+
+        .badge-low {
+            background: rgba(56, 189, 248, 0.1);
+            color: var(--accent-cyan);
+            border: 1px solid rgba(56, 189, 248, 0.2);
+        }
+
+        .indicator-details {
+            flex: 1;
+        }
+
+        .indicator-category {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 2px;
+        }
+
+        .indicator-msg {
+            font-size: 0.95rem;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        /* Attribution Overlaps Trees */
+        .overlaps-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .overlap-node-card {
+            background: rgba(15, 23, 42, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+            transition: all 0.3s;
+        }
+
+        .overlap-node-card:hover {
+            transform: translateY(-2px);
+            border-color: rgba(56, 189, 248, 0.2);
+            box-shadow: 0 5px 15px rgba(56, 189, 248, 0.05);
+        }
+
+        .overlap-node-card h4 {
+            margin: 0 0 6px 0;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .overlap-node-card p {
+            margin: 0;
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--accent-cyan);
+            word-break: break-all;
+        }
+
+        /* Timeline chronological diff view */
+        .timeline-container {
+            position: relative;
+            padding-left: 28px;
+            margin-top: 10px;
+        }
+
+        .timeline-container::before {
+            content: '';
+            position: absolute;
+            left: 7px;
+            top: 8px;
+            width: 2px;
+            height: calc(100% - 16px);
+            background: rgba(255, 255, 255, 0.06);
+        }
+
+        .timeline-event {
+            position: relative;
+            margin-bottom: 28px;
+        }
+
+        .timeline-event:last-child {
+            margin-bottom: 0;
+        }
+
+        .timeline-marker {
+            position: absolute;
+            left: -28px;
+            top: 4px;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: var(--bg-surface);
+            border: 2px solid rgba(255,255,255,0.2);
+            box-sizing: border-box;
+            transition: all 0.3s;
+        }
+
+        .timeline-event:hover .timeline-marker {
+            border-color: var(--accent-cyan);
+            box-shadow: 0 0 10px var(--accent-cyan);
+            transform: scale(1.2);
+        }
+
+        .timeline-event.event-high .timeline-marker {
+            border-color: var(--accent-red);
+        }
+
+        .timeline-event:hover.event-high .timeline-marker {
+            box-shadow: 0 0 10px var(--accent-red);
+        }
+
+        .timeline-time {
+            font-size: 0.85rem;
+            font-family: var(--font-mono);
+            color: var(--accent-cyan);
+            margin-bottom: 4px;
+        }
+
+        .timeline-header {
+            font-size: 1.05rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .timeline-source {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            background: rgba(255,255,255,0.04);
+            padding: 2px 8px;
+            border-radius: 4px;
+            border: 1px solid rgba(255,255,255,0.02);
+        }
+
+        .timeline-body {
+            background: rgba(15, 23, 42, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.02);
+            border-radius: 8px;
+            padding: 14px 18px;
+        }
+
+        .timeline-change-item {
+            font-size: 0.95rem;
+            color: #d1d5db;
+            margin-bottom: 6px;
+            line-height: 1.5;
+        }
+
+        .timeline-change-item:last-child {
+            margin-bottom: 0;
+        }
+
+        /* Map Panel styling */
+        .map-section {
+            margin-top: 30px;
+        }
+
+        .map-box {
+            width: 100%;
+            height: 380px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            background: rgba(15, 23, 42, 0.6);
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Tables */
+        .data-table-container {
+            overflow-x: auto;
+            margin-top: 16px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        th, td {
+            padding: 14px 16px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+            font-size: 0.95rem;
+        }
+
+        th {
+            background: rgba(15, 23, 42, 0.8);
+            color: var(--text-secondary);
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.8rem;
+            letter-spacing: 0.05em;
+        }
+
+        tr:hover td {
+            background: rgba(255, 255, 255, 0.01);
+            color: var(--text-primary);
+        }
+
+        /* Neighborhood node maps */
+        .member-domains-list {
+            max-height: 350px;
+            overflow-y: auto;
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            border-radius: 8px;
+            background: rgba(15, 23, 42, 0.3);
+        }
+
+        .member-domain-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 18px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+            transition: background 0.2s;
+        }
+
+        .member-domain-row:last-child {
+            border-bottom: none;
+        }
+
+        .member-domain-row:hover {
+            background: rgba(255, 255, 255, 0.01);
+        }
+
+        .member-domain-name {
+            font-weight: 600;
+            color: var(--accent-cyan);
+            text-decoration: none;
+        }
+
+        .member-domain-name:hover {
+            text-decoration: underline;
+        }
+
+        .similarity-pill {
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            font-weight: 700;
+            background: rgba(56, 189, 248, 0.1);
+            color: var(--accent-cyan);
+            border: 1px solid rgba(56, 189, 248, 0.25);
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+
+        /* Helper info block */
+        .nodata-notice {
+            color: var(--text-secondary);
+            font-style: italic;
+            padding: 20px;
+            text-align: center;
+            background: rgba(15, 23, 42, 0.2);
+            border-radius: 8px;
+            border: 1px dashed rgba(255, 255, 255, 0.05);
+        }
+    </style>
+</head>
+<body>
+    <div id="header-include"></div>
+    
+    <div class="container">
+        <!-- Dashboard Header -->
+        <header>
+            <div class="header-title-section">
+                <h1>Cyber Threat Investigator Dossier Panel</h1>
+                <p>Advanced real-time intelligence mapping and correlation scanning console.</p>
+            </div>
+            <a href="../../index.html" class="back-btn">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+                Main Console
+            </a>
+        </header>
+
+        <!-- Command Console Form -->
+        <div class="search-container">
+            <form class="search-form" id="investigatorForm" autocomplete="off">
+                <div class="search-input-wrapper">
+                    <svg fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                    <input type="text" id="targetInput" placeholder="Enter target domain or IP address (e.g. google.com or 8.8.8.8)" required>
+                </div>
+                <button type="submit" id="submitBtn">Start Audit</button>
+            </form>
+        </div>
+
+        <!-- System error logging -->
+        <div id="errorBanner" class="error-banner"></div>
+
+        <!-- Unified Dossier Dashboard Frame -->
+        <div class="dossier-frame" id="dossierFrame">
+            <!-- Header bar with download options -->
+            <div class="dossier-header-bar">
+                <h3 class="dossier-title" id="dossierTitle">
+                    Audit dossier: <span id="targetLabel">example.com</span>
+                </h3>
+                <div class="action-controls">
+                    <div class="format-tabs">
+                        <button type="button" class="format-tab active" data-format="html">HTML View</button>
+                        <button type="button" class="format-tab" data-format="json">JSON Dossier</button>
+                    </div>
+                    <button type="button" class="action-btn" id="copyBtn" title="Copy raw dossier">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                        </svg>
+                    </button>
+                    <button type="button" class="action-btn" id="downloadBtn" title="Download JSON dossier">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="7 10 12 15 17 10"></polyline>
+                            <line x1="12" y1="15" x2="12" y2="3"></line>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- View tab content boxes -->
+            <div class="tab-content">
+                <!-- Raw JSON Node Output -->
+                <div class="json-view" id="jsonView"></div>
+
+                <!-- Rich Graphical Dashboard -->
+                <div class="html-view" id="htmlView">
+                    <div class="dashboard-grid">
+                        
+                        <!-- LEFT COLUMN: Scores and quick indicators -->
+                        <div class="left-column" style="display:flex; flex-direction:column; gap:30px;">
+                            
+                            <!-- Heuristics score -->
+                            <div class="glass-card">
+                                <h3 class="card-title">Risk Analysis Scorecard <span>SCORE</span></h3>
+                                <div class="reputation-widget">
+                                    <div class="score-radial">
+                                        <div class="score-radial-progress" id="radialProgress" style="border-top-color: var(--accent-cyan); border-right-color: var(--accent-cyan);"></div>
+                                        <div class="score-radial-value" id="trustScoreVal">100</div>
+                                    </div>
+                                    <div class="score-label">Trust Index Score</div>
+                                    <div class="risk-rating-badge" id="riskRatingBadge">Low Risk</div>
+                                </div>
+
+                                <div class="bar-metric">
+                                    <div class="bar-label">
+                                        <span>Infrastructure Threat Level</span>
+                                        <span id="threatScorePct">0%</span>
+                                    </div>
+                                    <div class="bar-outer">
+                                        <div class="bar-inner" id="threatBarInner" style="width: 0%; background: var(--accent-cyan);"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Heuristic Flag indicators -->
+                            <div class="glass-card">
+                                <h3 class="card-title">Threat Indicators <span>ANOMALIES</span></h3>
+                                <div class="risk-indicators-list" id="anomaliesList">
+                                    <div class="nodata-notice">No high-risk threat anomalies flagged.</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- RIGHT COLUMN: Timeline and correlation networks -->
+                        <div class="right-column" style="display:flex; flex-direction:column; gap:30px;">
+                            
+                            <!-- Attribution Overlaps Node Map -->
+                            <div class="glass-card">
+                                <h3 class="card-title">Attribution Overlaps & Node Fingerprint <span>CORRELATIONS</span></h3>
+                                <div class="overlaps-grid" id="overlapsGrid">
+                                    <div class="overlap-node-card">
+                                        <h4>Registrar</h4>
+                                        <p id="fpRegistrar">Unknown</p>
+                                    </div>
+                                    <div class="overlap-node-card">
+                                        <h4>Registrant Org</h4>
+                                        <p id="fpOrganization">Unknown</p>
+                                    </div>
+                                </div>
+
+                                <h4 style="color:var(--text-secondary); text-transform:uppercase; font-size:0.8rem; letter-spacing:0.05em; margin:24px 0 12px 0;">Suspicious Neighborhood Neighbors</h4>
+                                <div class="member-domains-list" id="memberDomainsList">
+                                    <div class="nodata-notice">No overlapping hosting neighbors detected in offline intelligence.</div>
+                                </div>
+                            </div>
+
+                            <!-- Timeline diff changes tracker -->
+                            <div class="glass-card">
+                                <h3 class="card-title">Chronological Footprint Snapshots Timeline <span>HISTORY</span></h3>
+                                <div class="timeline-container" id="timelineList">
+                                    <div class="nodata-notice">No historical footprint transition snapshots observed. Timeline begins today.</div>
+                                </div>
+                            </div>
+
+                            <!-- Leaflet Geolocation Map -->
+                            <div class="glass-card">
+                                <h3 class="card-title">Interactive IP Geolocation <span>MAP</span></h3>
+                                <div class="map-section">
+                                    <div class="map-box" id="map"></div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="footer-include"></div>
+
+    <script src="../../assets/js/utils.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            if (window.CJ && window.CJ.loadHeaderFooter) {
+                window.CJ.loadHeaderFooter("../../");
+            }
+        });
+    </script>
+    <script>
+        (function () {
+            let currentData = null;
+            let currentFormat = "html";
+            let mapInstance = null;
+
+            const form = document.getElementById("investigatorForm");
+            const input = document.getElementById("targetInput");
+            const submitBtn = document.getElementById("submitBtn");
+            const dossierFrame = document.getElementById("dossierFrame");
+            const targetLabel = document.getElementById("targetLabel");
+            const errorBanner = document.getElementById("errorBanner");
+            const formatTabs = document.querySelectorAll(".format-tab");
+            
+            const htmlView = document.getElementById("htmlView");
+            const jsonView = document.getElementById("jsonView");
+            const copyBtn = document.getElementById("copyBtn");
+            const downloadBtn = document.getElementById("downloadBtn");
+
+            // Radial metrics
+            const trustScoreVal = document.getElementById("trustScoreVal");
+            const radialProgress = document.getElementById("radialProgress");
+            const riskRatingBadge = document.getElementById("riskRatingBadge");
+            const threatScorePct = document.getElementById("threatScorePct");
+            const threatBarInner = document.getElementById("threatBarInner");
+            const anomaliesList = document.getElementById("anomaliesList");
+
+            // Fingerprint
+            const fpRegistrar = document.getElementById("fpRegistrar");
+            const fpOrganization = document.getElementById("fpOrganization");
+            const memberDomainsList = document.getElementById("memberDomainsList");
+            const timelineList = document.getElementById("timelineList");
+
+            // Format Tab Swapping
+            formatTabs.forEach((tab) => {
+                tab.addEventListener("click", function () {
+                    currentFormat = this.dataset.format;
+                    formatTabs.forEach((t) => t.classList.remove("active"));
+                    this.classList.add("active");
+                    if (currentFormat === "html") {
+                        htmlView.style.display = "block";
+                        jsonView.style.display = "none";
+                        // Re-trigger map resize if Leaflet is initialized
+                        if (mapInstance) {
+                            setTimeout(() => { mapInstance.invalidateSize(); }, 150);
+                        }
+                    } else {
+                        htmlView.style.display = "none";
+                        jsonView.style.display = "block";
+                    }
+                });
+            });
+
+            // Action Buttons
+            copyBtn.addEventListener("click", function () {
+                const textToCopy = currentFormat === "html" ? htmlView.textContent : jsonView.textContent;
+                navigator.clipboard.writeText(textToCopy).then(() => {
+                    const originalTitle = this.title;
+                    this.title = "Copied!";
+                    const originalHTML = this.innerHTML;
+                    this.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>';
+                    setTimeout(() => {
+                        this.title = originalTitle;
+                        this.innerHTML = originalHTML;
+                    }, 2000);
+                });
+            });
+
+            downloadBtn.addEventListener("click", function () {
+                if (!currentData) return;
+                const blob = new Blob([JSON.stringify(currentData, null, 2)], { type: "application/json" });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = `threat-dossier-${input.value.trim().replace(/[^a-zA-Z0-9]/g, '_')}.json`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            });
+
+            // Form Submit handler
+            form.addEventListener("submit", async function (e) {
+                e.preventDefault();
+                const query = input.value.trim();
+                if (!query) return;
+
+                errorBanner.style.display = "none";
+                dossierFrame.style.display = "none";
+                submitBtn.innerHTML = '<span class="loading-spinner"></span>Auditing...';
+                submitBtn.disabled = true;
+
+                try {
+                    const resp = await fetch(`backend.php?target=${encodeURIComponent(query)}`);
+                    const data = await resp.json();
+                    
+                    if (data && data.errors && data.errors.length > 0) {
+                        errorBanner.textContent = data.errors[0];
+                        errorBanner.style.display = "block";
+                        return;
+                    }
+
+                    currentData = data;
+                    renderDossier(data.data);
+                    
+                } catch (err) {
+                    errorBanner.textContent = "An error occurred while compiling the threat dossier.";
+                    errorBanner.style.display = "block";
+                    console.error(err);
+                } finally {
+                    submitBtn.textContent = "Start Audit";
+                    submitBtn.disabled = false;
+                }
+            });
+
+            function renderDossier(dossier) {
+                targetLabel.textContent = dossier.target;
+                document.getElementById("targetLabel").innerHTML = `${window.CJ.escapeHtml(dossier.target)} <span>${dossier.type} AUDIT</span>`;
+                
+                // Set JSON output
+                jsonView.textContent = JSON.stringify(dossier, null, 2);
+                dossierFrame.style.display = "block";
+
+                // 1. Set Risk Score Heuristics
+                const rep = dossier.reputation || {};
+                const score = typeof rep.trust_score !== 'undefined' ? rep.trust_score : 100;
+                const risk = 100 - score;
+
+                trustScoreVal.textContent = score;
+                threatScorePct.textContent = `${risk}%`;
+                threatBarInner.style.width = `${risk}%`;
+                
+                // Score Radial border color representation
+                if (score >= 80) {
+                    radialProgress.style.borderTopColor = "var(--accent-green)";
+                    radialProgress.style.borderRightColor = "var(--accent-green)";
+                    threatBarInner.style.backgroundColor = "var(--accent-green)";
+                    riskRatingBadge.className = "risk-rating-badge rating-low";
+                    riskRatingBadge.textContent = "Low Risk Score";
+                } else if (score >= 50) {
+                    radialProgress.style.borderTopColor = "var(--accent-amber)";
+                    radialProgress.style.borderRightColor = "var(--accent-amber)";
+                    threatBarInner.style.backgroundColor = "var(--accent-amber)";
+                    riskRatingBadge.className = "risk-rating-badge rating-medium";
+                    riskRatingBadge.textContent = "Medium Risk Score";
+                } else {
+                    radialProgress.style.borderTopColor = "var(--accent-red)";
+                    radialProgress.style.borderRightColor = "var(--accent-red)";
+                    threatBarInner.style.backgroundColor = "var(--accent-red)";
+                    riskRatingBadge.className = "risk-rating-badge rating-critical";
+                    riskRatingBadge.textContent = "Critical Risk / Threat Identified";
+                }
+
+                // 2. Load Anomalies / Risk Indicators
+                anomaliesList.innerHTML = "";
+                const risks = rep.risks || [];
+                const indicators = rep.risk_indicators || [];
+                
+                // Add combined anomalies from threat clusters if available
+                const clusterAnomalies = (dossier.threat_clusters && dossier.threat_clusters.anomalies) || [];
+                const combinedAnomalies = [...indicators, ...clusterAnomalies];
+
+                if (combinedAnomalies.length === 0 && risks.length === 0) {
+                    anomaliesList.innerHTML = '<div class="nodata-notice">No severe threat anomalies or risk markers detected. Target appears clean.</div>';
+                } else {
+                    combinedAnomalies.forEach((ind) => {
+                        const sev = ind.severity || 'MEDIUM';
+                        const item = document.createElement("div");
+                        item.className = `risk-indicator-item SEV-${sev}`;
+                        item.innerHTML = `
+                            <span class="indicator-badge badge-${sev.toLowerCase()}">${sev}</span>
+                            <div class="indicator-details">
+                                <div class="indicator-category">${window.CJ.escapeHtml(ind.category || ind.type || 'RECONNAISSANCE')}</div>
+                                <div class="indicator-msg">${window.CJ.escapeHtml(ind.message || ind.msg)}</div>
+                            </div>
+                        `;
+                        anomaliesList.appendChild(item);
+                    });
+                    
+                    // Fallback to plain text risk statements if array is empty
+                    if (combinedAnomalies.length === 0) {
+                        risks.forEach((rText) => {
+                            const item = document.createElement("div");
+                            item.className = "risk-indicator-item SEV-HIGH";
+                            item.innerHTML = `
+                                <span class="indicator-badge badge-high">HIGH</span>
+                                <div class="indicator-details">
+                                    <div class="indicator-category">COMPROMISE SIGNAL</div>
+                                    <div class="indicator-msg">${window.CJ.escapeHtml(rText)}</div>
+                                </div>
+                            `;
+                            anomaliesList.appendChild(item);
+                        });
+                    }
+                }
+
+                // 3. Footprint Fingerprint & Overlaps Mapping
+                const clusters = dossier.threat_clusters || {};
+                const stats = clusters.stats || {};
+                const fp = clusters.fingerprint || {};
+
+                fpRegistrar.textContent = fp.registrar || (dossier.whois_data && dossier.whois_data.registrar) || "Unknown";
+                fpOrganization.textContent = fp.organization || (dossier.whois_data && dossier.whois_data.organization) || "Unknown";
+
+                // Load neighbors
+                memberDomainsList.innerHTML = "";
+                const members = clusters.all_members || [];
+                if (members.length === 0) {
+                    memberDomainsList.innerHTML = '<div class="nodata-notice">No co-located infrastructure neighbors registered in database.</div>';
+                } else {
+                    members.forEach((m) => {
+                        const row = document.createElement("div");
+                        row.className = "member-domain-row";
+                        row.innerHTML = `
+                            <a href="?target=${encodeURIComponent(m.domain)}" class="member-domain-name">${window.CJ.escapeHtml(m.domain)}</a>
+                            <div style="display:flex; gap:10px; align-items:center;">
+                                <span style="font-size:0.8rem; color:${m.risk_score >= 50 ? 'var(--accent-red)' : 'var(--accent-green)'}">${m.rating}</span>
+                                <span class="similarity-pill">${m.similarity}% Match</span>
+                            </div>
+                        `;
+                        memberDomainsList.appendChild(row);
+                    });
+                }
+
+                // 4. Chronological diff snapshot timeline
+                timelineList.innerHTML = "";
+                const timeline = dossier.timeline || [];
+                if (timeline.length === 0) {
+                    timelineList.innerHTML = '<div class="nodata-notice">No historical transition snapshots logged. Creating first observed record.</div>';
+                } else {
+                    timeline.forEach((evt) => {
+                        const isHigh = evt.importance === 'HIGH';
+                        const evtDiv = document.createElement("div");
+                        evtDiv.className = `timeline-event ${isHigh ? 'event-high' : ''}`;
+                        
+                        let changesHtml = "";
+                        if (Array.isArray(evt.changes)) {
+                            evt.changes.forEach((c) => {
+                                changesHtml += `<div class="timeline-change-item">• ${window.CJ.escapeHtml(c)}</div>`;
+                            });
+                        }
+
+                        evtDiv.innerHTML = `
+                            <div class="timeline-marker"></div>
+                            <div class="timeline-time">${window.CJ.escapeHtml(evt.timestamp)}</div>
+                            <div class="timeline-header">
+                                <span>${window.CJ.escapeHtml(evt.event)}</span>
+                                <span class="timeline-source">${window.CJ.escapeHtml(evt.source)}</span>
+                            </div>
+                            <div class="timeline-body">
+                                ${changesHtml}
+                            </div>
+                        `;
+                        timelineList.appendChild(evtDiv);
+                    });
+                }
+
+                // 5. Leaflet Map Geolocation Placement
+                window.CJ.ensureLeaflet(() => {
+                    // Destroy previous map instance to prevent double binding crashes
+                    if (mapInstance) {
+                        mapInstance.remove();
+                        mapInstance = null;
+                    }
+
+                    const net = dossier.network_context || {};
+                    let coords = [];
+
+                    if (dossier.type === 'IP') {
+                        if (net.latitude && net.longitude) {
+                            coords.push({
+                                lat: parseFloat(net.latitude),
+                                lon: parseFloat(net.longitude),
+                                label: `Target IP: ${net.ip} (${net.organization})`
+                            });
+                        }
+                    } else if (net.resolved_ips) {
+                        for (let ip in net.resolved_ips) {
+                            const details = net.resolved_ips[ip];
+                            if (details.latitude && details.longitude) {
+                                coords.push({
+                                    lat: parseFloat(details.latitude),
+                                    lon: parseFloat(details.longitude),
+                                    label: `Resolved IP: ${ip} (${details.organization})`
+                                });
+                            }
+                        }
+                    }
+
+                    if (coords.length > 0) {
+                        const first = coords[0];
+                        mapInstance = L.map('map').setView([first.lat, first.lon], 4);
+                        
+                        // Sleek dark styled tiles for dark theme wow factor
+                        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+                            attribution: '&copy; OpenStreetMap &copy; CARTO'
+                        }).addTo(mapInstance);
+
+                        coords.forEach((c) => {
+                            L.marker([c.lat, c.lon]).addTo(mapInstance)
+                                .bindPopup(c.label);
+                        });
+
+                        if (coords.length > 1) {
+                            const group = new L.featureGroup(coords.map(c => L.marker([c.lat, c.lon])));
+                            mapInstance.fitBounds(group.getBounds().pad(0.1));
+                        }
+                    } else {
+                        document.getElementById("map").innerHTML = '<div class="nodata-notice">No latitude/longitude geolocation metrics available for geoplotting.</div>';
+                    }
+                });
+            }
+
+            // Auto-trigger if query param present
+            window.CJ.autoLookup("investigatorForm", "targetInput", "target");
+        })();
+    </script>
+</body>
+</html>

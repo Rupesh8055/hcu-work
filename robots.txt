@@ -1,0 +1,7 @@
+User-agent: *
+Disallow: /vendor/
+Disallow: /logs/
+Disallow: /src/
+Disallow: /db.php
+Disallow: /db.local.php
+Sitemap: https://tools.cyberjagrithi.com/sitemap.xml
