@@ -1,0 +1,499 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DNS Lookup</title>
+    <meta
+      name="description"
+      content="Query and analyze all DNS records for any domain with detailed explanation of each record type. Vital for troubleshooting email delivery, website accessibility, and domain verification issues."
+    />
+    <meta property="og:title" content="DNS Record Lookup - Cyber Jagrithi" />
+    <meta
+      property="og:description"
+      content="Query and analyze all DNS records for any domain with detailed explanation of each record type. Vital for troubleshooting email delivery, website accessibility, and domain verification issues."
+    />
+    <meta property="og:type" content="website" />
+    <link rel="icon" type="image/png" href="../../favicon.png" />
+    <style>
+      body {
+        font-family: Segoe UI, Arial, sans-serif;
+        background: #f6f8fa;
+        margin: 0;
+      }
+      .container {
+        max-width: 1150px;
+        margin: 30px auto;
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        padding: 32px 32px 24px 32px;
+      }
+      h1 {
+        font-size: 2rem;
+        font-weight: 600;
+        margin-bottom: 8px;
+        color: #333;
+      }
+      .desc {
+        color: #555;
+        margin-bottom: 24px;
+      }
+      .search-box {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 24px;
+      }
+      .search-box input {
+        flex: 1;
+        padding: 12px;
+        border: 1px solid #d1d5db;
+        border-radius: 6px;
+        font-size: 1rem;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+      }
+      .search-box button {
+        background: #7a0000;
+        color: #fff;
+        border: none;
+        border-radius: 6px;
+        padding: 0 28px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.2s, opacity 0.2s;
+        min-width: 120px;
+      }
+      .search-box button:hover {
+        background: #5a0000;
+      }
+      .search-box button:disabled {
+        background: #7a0000;
+        opacity: 0.7;
+        cursor: not-allowed;
+      }
+      .loading-spinner-btn {
+        display: inline-block;
+        width: 12px;
+        height: 12px;
+        border: 2px solid #fff;
+        border-top: 2px solid transparent;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin-right: 8px;
+        vertical-align: middle;
+      }
+      .results-section {
+        display: none;
+        margin-top: 24px;
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        box-shadow: 0 1px 4px rgba(15, 23, 42, 0.08);
+        padding: 12px 16px 20px 16px;
+      }
+      .results-header {
+        display: flex;
+        justify-content: flex-start;
+        align-items: center;
+        margin-bottom: 16px;
+        flex-wrap: wrap;
+        gap: 16px;
+      }
+      .results-title {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: #333;
+        margin: 0;
+        margin-right: 16px;
+      }
+      .format-tabs {
+        display: flex;
+        background: #f3f4f6;
+        border-radius: 6px;
+        padding: 4px;
+        gap: 4px;
+        margin-right: auto;
+      }
+      .format-tab {
+        background: none;
+        border: none;
+        padding: 6px 16px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 0.9rem;
+        font-weight: 500;
+        color: #666;
+        transition: all 0.2s;
+      }
+      .format-tab.active {
+        background: #fff;
+        color: #333;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      }
+      .action-icons {
+        display: flex;
+        gap: 8px;
+      }
+      .action-icon {
+        background: #f8f9fa;
+        border: 1px solid #e2e8f0;
+        padding: 8px;
+        border-radius: 6px;
+        cursor: pointer;
+        color: #4b5563;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 36px;
+        height: 36px;
+      }
+      .action-icon:hover {
+        background: #edf2f7;
+        color: #1a202c;
+        border-color: #cbd5e0;
+      }
+      .action-icon svg {
+        width: 18px;
+        height: 18px;
+      }
+      .tab-content {
+        background: #fff;
+        border-radius: 8px;
+        padding: 20px;
+        margin-top: 8px;
+      }
+      .html-view {
+        display: block;
+      }
+      .json-view {
+        display: none;
+        background: #f8f9fa;
+        border: 1px solid #e9ecef;
+        border-radius: 6px;
+        padding: 16px;
+        font-family: "Courier New", monospace;
+        font-size: 0.9rem;
+        white-space: pre-wrap;
+        overflow-x: auto;
+        max-height: 500px;
+        overflow-y: auto;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 8px;
+      }
+      th, td {
+        text-align: left;
+        padding: 12px 8px;
+        border-bottom: 1px solid #e5e7eb;
+      }
+      th {
+        background: #f9fafb;
+        color: #374151;
+        font-weight: 600;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+      tr:nth-child(even) {
+        background: #fafbfc;
+      }
+      tr:hover {
+        background: #f1f5f9;
+      }
+      .record-type {
+        display: inline-block;
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        background: #e0f2fe;
+        color: #0369a1;
+      }
+      .error-msg {
+        color: #b91c1c;
+        background: #fee2e2;
+        padding: 12px 16px;
+        border-radius: 6px;
+        margin-bottom: 16px;
+        font-weight: 500;
+        border-left: 4px solid #b91c1c;
+        display: none;
+        margin-top: 24px;
+      }
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+      #header-include header h1 a { color: #fff !important; }
+      @media (max-width: 768px) {
+        .container { padding: 20px; }
+        .search-box { flex-direction: column; }
+        .search-box button { width: 100%; }
+        .results-header { flex-direction: column; align-items: flex-start; }
+        .format-tabs { margin-right: 0; width: 100%; margin-bottom: 12px; }
+        .action-icons { width: 100%; justify-content: flex-end; }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="header-include"></div>
+    <div class="container">
+      <h1>DNS Record Lookup</h1>
+      <div class="desc">
+        Perform a DNS lookup for any domain name. Retrieve A, AAAA, MX, NS, SOA,
+        and TXT records quickly and easily.
+      </div>
+      <form class="search-box" id="dnsForm" autocomplete="off">
+        <label for="domain" style="display: none">Domain Name</label>
+        <input
+          type="text"
+          id="domain"
+          placeholder="Enter domain name (e.g. google.com)"
+          required
+          aria-label="Domain Name"
+        />
+        <label for="type" style="display: none">Record Type</label>
+        <select id="type" aria-label="Record Type" style="padding: 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 1rem; background: white; min-width: 120px;">
+          <option value="ANY">ANY Record</option>
+          <option value="A">A Record</option>
+          <option value="AAAA">AAAA Record</option>
+          <option value="MX">MX Record</option>
+          <option value="NS">NS Record</option>
+          <option value="TXT">TXT Record</option>
+          <option value="CNAME">CNAME Record</option>
+          <option value="SOA">SOA Record</option>
+          <option value="CAA">CAA Record</option>
+        </select>
+        <button type="submit" id="submitBtn">Lookup</button>
+      </form>
+      <div id="error-msg" class="error-msg"></div>
+      <div class="results-section" id="resultsSection" style="display: none">
+        <div class="results-header">
+          <h3 class="results-title" id="resultsTitle">Results</h3>
+          <div class="format-tabs">
+            <button type="button" class="format-tab active" data-format="html">
+              HTML
+            </button>
+            <button type="button" class="format-tab" data-format="json">
+              JSON
+            </button>
+          </div>
+          <div class="action-icons">
+            <button
+              type="button"
+              class="action-icon"
+              id="copyBtn"
+              title="Copy results"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path
+                  d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"
+                ></path>
+              </svg>
+            </button>
+            <button
+              type="button"
+              class="action-icon"
+              id="downloadBtn"
+              title="Download results"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+              </svg>
+            </button>
+          </div>
+        </div>
+        <div class="tab-content">
+          <div class="html-view" id="htmlView"></div>
+          <div class="json-view" id="jsonView"></div>
+        </div>
+      </div>
+    </div>
+    <div id="footer-include"></div>
+    <script src="../../assets/js/utils.js"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        if (window.CJ && window.CJ.loadHeaderFooter) {
+            window.CJ.loadHeaderFooter("../../");
+        }
+      });
+    </script>
+    <script>
+      (function () {
+        let currentData = null;
+        let currentFormat = "html";
+        const form = document.getElementById("dnsForm");
+        const input = document.getElementById("domain");
+        const submitBtn = document.getElementById("submitBtn");
+        const resultsSection = document.getElementById("resultsSection");
+        const resultsTitle = document.getElementById("resultsTitle");
+        const htmlView = document.getElementById("htmlView");
+        const jsonView = document.getElementById("jsonView");
+        const errorMsg = document.getElementById("error-msg");
+        const copyBtn = document.getElementById("copyBtn");
+        const downloadBtn = document.getElementById("downloadBtn");
+        const formatTabs = document.querySelectorAll(".format-tab");
+
+        function escapeHtml(text) {
+          if (!text) return text;
+          return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+        }
+
+        formatTabs.forEach((tab) => {
+          tab.addEventListener("click", function () {
+            currentFormat = this.dataset.format;
+            formatTabs.forEach((t) => t.classList.remove("active"));
+            this.classList.add("active");
+            if (currentFormat === "html") {
+              htmlView.style.display = "block";
+              jsonView.style.display = "none";
+            } else {
+              htmlView.style.display = "none";
+              jsonView.style.display = "block";
+            }
+          });
+        });
+
+        copyBtn.addEventListener("click", function () {
+          const textToCopy = currentFormat === "html" ? htmlView.textContent : jsonView.textContent;
+          navigator.clipboard.writeText(textToCopy).then(() => {
+            const originalTitle = this.title;
+            this.title = "Copied!";
+            const originalHTML = this.innerHTML;
+            this.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="green" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>';
+            setTimeout(() => {
+              this.title = originalTitle;
+              this.innerHTML = originalHTML;
+            }, 2000);
+          });
+        });
+
+        downloadBtn.addEventListener("click", function () {
+          if (!currentData) return;
+          const content = currentFormat === "html" ? htmlView.innerHTML : JSON.stringify(currentData, null, 2);
+          const blob = new Blob([content], { type: currentFormat === "html" ? "text/html" : "application/json" });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = `dns-lookup-${input.value.trim()}.${currentFormat}`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+        });
+
+        window.CJ.autoLookup("dnsForm", "domain");
+
+        form.addEventListener("submit", async function (e) {
+          e.preventDefault();
+          const domain = input.value.trim();
+          const typeSelect = document.getElementById("type");
+          const recordType = typeSelect ? typeSelect.value : 'ANY';
+          
+          if (!domain) {
+            errorMsg.textContent = "Please enter a domain name.";
+            errorMsg.style.display = "block";
+            if (typeof resultsSection !== "undefined" && resultsSection) resultsSection.style.display = "none";
+            return;
+          }
+          errorMsg.style.display = "none";
+          resultsSection.style.display = "none";
+          htmlView.innerHTML = "";
+          jsonView.innerHTML = "";
+          const originalButtonText = submitBtn.textContent;
+          submitBtn.innerHTML = '<span class="loading-spinner-btn"></span>Loading...';
+          submitBtn.disabled = true;
+
+          const oldIndicator = document.getElementById('refreshing-indicator');
+          if (oldIndicator) oldIndicator.remove();
+
+          try {
+            const resp = await fetch(`backend.php?domain=${encodeURIComponent(domain)}&type=${encodeURIComponent(recordType)}`);
+            const data = await resp.json();
+            currentData = data;
+            resultsSection.style.display = "block";
+            
+            if (data && data.errors && data.errors.length > 0) {
+              errorMsg.textContent = data.errors[0];
+              errorMsg.style.display = "block";
+              if (typeof resultsSection !== "undefined" && resultsSection) resultsSection.style.display = "none";
+              return;
+            }
+
+            const response = data && data.data ? data.data : {};
+
+            if (response.meta && response.meta.is_stale) {
+                const indicator = document.createElement('div');
+                indicator.id = 'refreshing-indicator';
+                indicator.style.cssText = "background:#fffbeb; border:1px solid #fef3c7; color:#92400e; padding:10px 15px; border-radius:6px; margin-bottom:15px; font-size:0.9rem; display:flex; align-items:center; gap:10px;";
+                indicator.innerHTML = '<span class="loading-spinner-btn" style="border-color:#d97706; border-top-color:transparent; width:14px; height:14px;"></span> Result is cached. Updating in background for fresh data...';
+                resultsSection.prepend(indicator);
+            }
+
+            resultsTitle.textContent = `Results for ${domain}`;
+            const records = response.records || [];
+            if (records.length === 0) {
+              htmlView.innerHTML = '<div style="padding:16px; text-align:center; color:#666;">No DNS records found for this domain.</div>';
+            } else {
+              const intelligence = response.intelligence || null;
+              let intelHtml = "";
+              if (intelligence) {
+                intelHtml += `<div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:16px; margin-bottom:20px;">
+                      <h4 style="margin-top:0; margin-bottom:12px; font-size:1.05rem; color:#0f172a;">Domain Intelligence</h4>
+                      <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; font-size:0.9rem;">
+                          <div><strong>SPF Record:</strong> <span style="color:${intelligence.spf_record ? "#15803d" : "#b91c1c"}">${intelligence.spf_record ? "&#10004; Protected" : "&#10006; Unprotected"}</span></div>
+                          <div><strong>DMARC Record:</strong> <span style="color:${intelligence.dmarc_record ? "#15803d" : "#b91c1c"}">${intelligence.dmarc_record ? "&#10004; Protected" : "&#10006; Unprotected"}</span></div>
+                          <div><strong>DKIM Selectors:</strong> ${Object.keys(intelligence.dkim_records || {}).length > 0 ? Object.keys(intelligence.dkim_records).join(", ") : '<span style="color:#64748b">None standard detected</span>'}</div>
+                      </div>`;
+                if (intelligence.cname_chain && intelligence.cname_chain.length > 0) {
+                  intelHtml += `<div style="margin-top:16px; font-size:0.9rem;"><strong>Resolution Chain:</strong><div style="margin-top:6px;">`;
+                  intelligence.cname_chain.forEach((link) => {
+                    intelHtml += `<div style="margin-bottom:4px; padding-left:12px; border-left:2px solid #cbd5e1;"><span style="display:inline-block; background:#e0f2fe; color:#0369a1; padding:2px 6px; border-radius:4px; font-size:0.75rem; font-weight:bold; margin-right:6px; min-width:32px; text-align:center;">${escapeHtml(link.type || "CNAME")}</span> ${escapeHtml(link.from)} <span style="color:#94a3b8">&rarr;</span> ${escapeHtml(link.to)}</div>`;
+                  });
+                  intelHtml += `</div></div>`;
+                }
+                intelHtml += `</div>`;
+              }
+              let tableHtml = `<table><thead><tr><th>Type</th><th>Host</th><th>Target / Value</th><th>TTL</th></tr></thead><tbody>`;
+              records.forEach((record) => {
+                tableHtml += `<tr><td><span class="record-type">${escapeHtml(record.type || "")}</span></td><td>${escapeHtml(record.name || record.host || "")}</td><td style="word-break: break-all;">${escapeHtml(record.data || record.target || record.ip || record.ipv6 || "")}</td><td>${escapeHtml(record.ttl ? String(record.ttl) : "")}</td></tr>`;
+              });
+              tableHtml += "</tbody></table>";
+              htmlView.innerHTML = intelHtml + tableHtml;
+            }
+            jsonView.textContent = JSON.stringify(data, null, 2);
+          } catch (err) {
+            errorMsg.textContent = "An error occurred while fetching DNS records.";
+            errorMsg.style.display = "block";
+            if (typeof resultsSection !== "undefined" && resultsSection) resultsSection.style.display = "none";
+            console.error(err);
+          } finally {
+            submitBtn.textContent = originalButtonText;
+            submitBtn.disabled = false;
+          }
+        });
+      })();
+    </script>
+  </body>
+</html>

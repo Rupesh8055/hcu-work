@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ASN Lookup</title>
+    <meta name="description" content="Retrieve detailed information about Autonomous System Numbers including IP ranges, routing policies, and organizational data. Essential for network mapping and investigating network-level threats.">
+    <meta property="og:title" content="ASN Lookup - Cyber Jagrithi">
+    <meta property="og:description" content="Retrieve detailed information about Autonomous System Numbers including IP ranges, routing policies, and organizational data. Essential for network mapping and investigating network-level threats.">
+    <meta property="og:type" content="website">
+    <link rel="icon" type="image/png" href="../../favicon.png" />
+    <style>
+      body {
+        font-family: Segoe UI, Arial, sans-serif;
+        background: #f6f8fa;
+        margin: 0;
+      }
+      .container {
+        max-width: 1150px;
+        margin: 30px auto;
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        padding: 32px 32px 24px 32px;
+      }
+      h1 {
+        font-size: 2rem;
+        font-weight: 600;
+        margin-bottom: 8px;
+        color: #333;
+      }
+      .desc {
+        color: #555;
+        margin-bottom: 24px;
+      }
+      .search-box {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 24px;
+      }
+      .search-box input {
+        flex: 1;
+        padding: 12px;
+        border: 1px solid #d1d5db;
+        border-radius: 6px;
+        font-size: 1rem;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+      }
+      .search-box button {
+        background: #7a0000;
+        color: #fff;
+        border: none;
+        border-radius: 6px;
+        padding: 0 28px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.2s, opacity 0.2s;
+        min-width: 120px;
+      }
+      .search-box button:hover {
+        background: #5a0000;
+      }
+      .search-box button:disabled {
+        background: #7a0000;
+        opacity: 0.7;
+        cursor: not-allowed;
+      }
+      .loading-spinner-btn {
+        display: inline-block;
+        width: 12px;
+        height: 12px;
+        border: 2px solid #fff;
+        border-top: 2px solid transparent;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin-right: 8px;
+        vertical-align: middle;
+      }
+      .results-section {
+        display: none;
+        margin-top: 24px;
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        box-shadow: 0 1px 4px rgba(15, 23, 42, 0.08);
+        padding: 12px 16px 20px 16px;
+      }
+      .results-header {
+        display: flex;
+        justify-content: flex-start;
+        align-items: center;
+        margin-bottom: 16px;
+        flex-wrap: wrap;
+        gap: 16px;
+      }
+      .results-title {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: #333;
+        margin: 0;
+        margin-right: 16px;
+      }
+      .format-tabs {
+        display: flex;
+        background: #f3f4f6;
+        border-radius: 6px;
+        padding: 4px;
+        gap: 4px;
+        margin-right: auto;
+      }
+      .format-tab {
+        background: none;
+        border: none;
+        padding: 6px 16px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 0.9rem;
+        font-weight: 500;
+        color: #666;
+        transition: all 0.2s;
+      }
+      .format-tab.active {
+        background: #fff;
+        color: #333;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      }
+      .action-icons {
+        display: flex;
+        gap: 8px;
+      }
+      .action-icon {
+        background: #f8f9fa;
+        border: 1px solid #e2e8f0;
+        padding: 8px;
+        border-radius: 6px;
+        cursor: pointer;
+        color: #4b5563;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 36px;
+        height: 36px;
+      }
+      .action-icon:hover {
+        background: #edf2f7;
+        color: #1a202c;
+        border-color: #cbd5e0;
+      }
+      .action-icon svg {
+        width: 18px;
+        height: 18px;
+      }
+      .tab-content {
+        background: #fff;
+        border-radius: 8px;
+        padding: 20px;
+        margin-top: 8px;
+      }
+      .html-view {
+        display: block;
+      }
+      .json-view {
+        display: none;
+        background: #f8f9fa;
+        border: 1px solid #e9ecef;
+        border-radius: 6px;
+        padding: 16px;
+        font-family: "Courier New", monospace;
+        font-size: 0.9rem;
+        white-space: pre-wrap;
+        overflow-x: auto;
+        max-height: 500px;
+        overflow-y: auto;
+      }
+      .info-box {
+        background: #f8f9fa;
+        border: 1px solid #e5e7eb;
+        border-radius: 6px;
+        padding: 16px;
+        margin-bottom: 16px;
+      }
+      .info-row {
+        display: flex;
+        padding: 8px 0;
+        border-bottom: 1px solid #e5e7eb;
+      }
+      .info-row:last-child {
+        border-bottom: none;
+      }
+      .info-label {
+        font-weight: 600;
+        color: #374151;
+        min-width: 150px;
+      }
+      .info-value {
+        color: #666;
+      }
+      .error-msg {
+        color: #b91c1c;
+        background: #fee2e2;
+        padding: 12px 16px;
+        border-radius: 6px;
+        margin-bottom: 16px;
+        font-weight: 500;
+        border-left: 4px solid #b91c1c;
+        display: none;
+        margin-top: 24px;
+      }
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+      #header-include header h1 a { color: #fff !important; }
+      @media (max-width: 768px) {
+        .container { padding: 20px; }
+        .search-box { flex-direction: column; }
+        .search-box button { width: 100%; }
+        .results-header { flex-direction: column; align-items: flex-start; }
+        .format-tabs { margin-right: 0; width: 100%; margin-bottom: 12px; }
+        .action-icons { width: 100%; justify-content: flex-end; }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="header-include"></div>
+    <div class="container">
+      <h1>ASN Lookup</h1>
+      <div class="desc">
+        Look up Autonomous System Number (ASN) information for IP addresses,
+        domains, or ASN numbers. Get details about network ownership,
+        organization, and IP ranges.
+      </div>
+      <form class="search-box" id="asnForm" autocomplete="off">
+        <label for="query" style="display: none">ASN Query</label>
+        <input
+          type="text"
+          id="query"
+          placeholder="Enter IP address, domain, or ASN (e.g. 8.8.8.8, google.com, AS15169)"
+          required
+          aria-label="ASN Query"
+        />
+        <button type="submit" id="submitBtn">Lookup</button>
+      </form>
+      <div id="error-msg" class="error-msg"></div>
+      <div class="results-section" id="resultsSection" style="display:none;">
+        <div class="results-header">
+          <h3 class="results-title" id="resultsTitle">Results</h3>
+          <div class="format-tabs">
+            <button type="button" class="format-tab active" data-format="html">HTML</button>
+            <button type="button" class="format-tab" data-format="json">JSON</button>
+          </div>
+          <div class="action-icons">
+            <button type="button" class="action-icon" id="copyBtn" title="Copy results">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+            </button>
+            <button type="button" class="action-icon" id="downloadBtn" title="Download results">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+              </svg>
+            </button>
+          </div>
+        </div>
+        <div class="tab-content">
+          <div class="html-view" id="htmlView"></div>
+          <div class="json-view" id="jsonView"></div>
+        </div>
+      </div>
+    </div>
+    <div id="footer-include"></div>
+    <script src="../../assets/js/utils.js"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        if (window.CJ && window.CJ.loadHeaderFooter) {
+            window.CJ.loadHeaderFooter("../../");
+        }
+      });
+    </script>
+    <script>
+      (function () {
+        let currentData = null;
+        let currentFormat = "html";
+        const form = document.getElementById("asnForm");
+        const input = document.getElementById("query");
+        const submitBtn = document.getElementById("submitBtn");
+        const resultsSection = document.getElementById("resultsSection");
+        const resultsTitle = document.getElementById("resultsTitle");
+        const htmlView = document.getElementById("htmlView");
+        const jsonView = document.getElementById("jsonView");
+        const errorMsg = document.getElementById("error-msg");
+        const copyBtn = document.getElementById("copyBtn");
+        const downloadBtn = document.getElementById("downloadBtn");
+        const formatTabs = document.querySelectorAll(".format-tab");
+        function escapeHtml(text) {
+          if (!text) return text;
+          return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+        }
+        formatTabs.forEach((tab) => {
+          tab.addEventListener("click", function () {
+            currentFormat = this.dataset.format;
+            formatTabs.forEach((t) => t.classList.remove("active"));
+            this.classList.add("active");
+            if (currentFormat === "html") {
+              htmlView.style.display = "block";
+              jsonView.style.display = "none";
+            } else {
+              htmlView.style.display = "none";
+              jsonView.style.display = "block";
+            }
+          });
+        });
+        copyBtn.addEventListener("click", function () {
+          const textToCopy = currentFormat === "html" ? htmlView.textContent : jsonView.textContent;
+          navigator.clipboard.writeText(textToCopy).then(() => {
+            const originalTitle = this.title;
+            this.title = "Copied!";
+            const originalHTML = this.innerHTML;
+            this.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="green" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>';
+            setTimeout(() => {
+                this.title = originalTitle;
+                this.innerHTML = originalHTML;
+            }, 2000);
+          });
+        });
+        downloadBtn.addEventListener("click", function () {
+          if (!currentData) return;
+          const content = currentFormat === "html" ? htmlView.innerHTML : JSON.stringify(currentData, null, 2);
+          const blob = new Blob([content], { type: currentFormat === "html" ? "text/html" : "application/json" });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = `asn-lookup-${input.value.trim()}.${currentFormat}`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+        });
+        window.CJ.autoLookup("asnForm", "query");
+
+        form.addEventListener("submit", async function (e) {
+          e.preventDefault();
+          const query = input.value.trim();
+          if (!query) {
+             errorMsg.textContent = "Please enter an IP address, domain, or ASN number.";
+             errorMsg.style.display = "block";
+             resultsSection.style.display = "none";
+             return;
+          }
+          errorMsg.style.display = "none";
+          resultsSection.style.display = "none";
+          htmlView.innerHTML = "";
+          jsonView.innerHTML = "";
+          const originalButtonText = submitBtn.textContent;
+          submitBtn.innerHTML = '<span class="loading-spinner-btn"></span>Lookup...';
+          submitBtn.disabled = true;
+
+          const oldIndicator = document.getElementById('refreshing-indicator');
+          if (oldIndicator) oldIndicator.remove();
+
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 20000); 
+
+          try {
+            const resp = await fetch(`backend.php?query=${encodeURIComponent(query)}`, { signal: controller.signal });
+            clearTimeout(timeoutId);
+
+            if (!resp.ok) throw new Error(`HTTP Error: ${resp.status}`);
+            
+            const data = await resp.json();
+            currentData = data;
+            const resData = data.data || data.response || data;
+            const resError = data.error || (data.errors && data.errors[0]) || resData.error || (resData.response && resData.response.error);
+            if (!data || resError) {
+               errorMsg.textContent = resError || "No results found.";
+               errorMsg.style.display = "block";
+               return;
+            }
+
+            resultsSection.style.display = "block";
+            const response = resData.response || resData;
+            resultsTitle.textContent = `Results for ${query}`;
+
+            if (response.meta && response.meta.is_stale) {
+                const indicator = document.createElement('div');
+                indicator.id = 'refreshing-indicator';
+                indicator.style.cssText = "background:#fffbeb; border:1px solid #fef3c7; color:#92400e; padding:10px 15px; border-radius:6px; margin-bottom:15px; font-size:0.9rem; display:flex; align-items:center; gap:10px;";
+                indicator.innerHTML = '<span class="loading-spinner-btn" style="border-color:#d97706; border-top-color:transparent; width:14px; height:14px;"></span> Result is cached. Updating in background for fresh data...';
+                resultsSection.prepend(indicator);
+            }
+
+            if (response.status === "success" || response.asn) {
+              const displayAsn = response.asn || ('AS' + (response.as_number || query));
+              resultsTitle.textContent = `Autonomous System Number Lookup - Results for ${displayAsn}`;
+
+              const createBlock = (title, items) => {
+                const box = document.createElement("div");
+                box.style.cssText = "background:#fff; border:1px solid #e5e7eb; border-radius:8px; padding:20px; margin-bottom:16px; box-shadow:0 1px 3px rgba(0,0,0,0.05);";
+                
+                if (title) {
+                  const h = document.createElement("h4");
+                  h.textContent = title;
+                  h.style.cssText = "margin:0 0 14px 0; font-size:1.05rem; color:#1e293b; border-bottom:1px solid #f1f5f9; padding-bottom:8px;";
+                  box.appendChild(h);
+                }
+
+                items.forEach(([label, value, isLink]) => {
+                  if (value === null || value === undefined || value === "") return;
+                  const row = document.createElement("div");
+                  row.className = "info-row";
+                  row.style.cssText = "display:flex; padding:6px 0; border-bottom:1px solid #f8fafc;";
+                  
+                  const lbl = document.createElement("div");
+                  lbl.className = "info-label";
+                  lbl.style.cssText = "width:180px; font-weight:600; color:#475569; font-size:0.9rem;";
+                  lbl.textContent = label + ":";
+                  
+                  const val = document.createElement("div");
+                  val.className = "info-value";
+                  val.style.cssText = "flex:1; color:#0f172a; font-size:0.9rem; word-break:break-all;";
+                  
+                  if (isLink && String(value).startsWith("http")) {
+                    val.innerHTML = `<a href="${escapeHtml(String(value))}" target="_blank" rel="noopener noreferrer" style="color:#2563eb; text-decoration:none;">${escapeHtml(String(value))}</a>`;
+                  } else {
+                    val.textContent = String(value);
+                  }
+                  
+                  row.appendChild(lbl);
+                  row.appendChild(val);
+                  box.appendChild(row);
+                });
+                return box;
+              };
+
+              // 1. AS Main Info Block
+              const asItems = [
+                ["ASNumber", response.as_number || (response.asn ? response.asn.replace(/[^0-9]/g, '') : "")],
+                ["ASName", response.as_name || response.name],
+                ["ASHandle", response.as_handle || response.asn],
+                ["RegDate", response.reg_date || response.registration_date],
+                ["Updated", response.updated || response.last_changed],
+                ["Ref", response.ref, true]
+              ];
+              htmlView.appendChild(createBlock("Autonomous System Details", asItems));
+
+              // 2. Process Entities
+              if (response.entities && response.entities.length > 0) {
+                response.entities.forEach(ent => {
+                  const roles = ent.roles || [];
+                  const isRegistrant = roles.includes("registrant") || roles.includes("owner");
+                  const isTech = roles.includes("technical") || roles.includes("administrative");
+                  const isAbuse = roles.includes("abuse");
+
+                  let blockTitle = "Entity Details (" + (roles.join(", ") || "Contact") + ")";
+                  let prefix = "";
+
+                  if (isRegistrant) {
+                    blockTitle = "Organization Details (Registrant)";
+                    prefix = "Org";
+                  } else if (isTech) {
+                    blockTitle = "Technical Contact Details";
+                    prefix = "OrgTech";
+                  } else if (isAbuse) {
+                    blockTitle = "Abuse Contact Details";
+                    prefix = "OrgAbuse";
+                  }
+
+                  const entItems = [];
+                  if (prefix === "Org") {
+                    entItems.push(["OrgName", ent.name]);
+                    entItems.push(["OrgId", ent.handle]);
+                    entItems.push(["Address", ent.address]);
+                    entItems.push(["City", ent.city]);
+                    entItems.push(["StateProv", ent.state_prov]);
+                    entItems.push(["PostalCode", ent.postal_code]);
+                    entItems.push(["Country", ent.country]);
+                    entItems.push(["RegDate", ent.reg_date]);
+                    entItems.push(["Updated", ent.updated]);
+                    entItems.push(["Comment", ent.comment]);
+                    entItems.push(["Ref", ent.ref, true]);
+                  } else if (prefix === "OrgTech") {
+                    entItems.push(["OrgTechHandle", ent.handle]);
+                    entItems.push(["OrgTechName", ent.name]);
+                    entItems.push(["OrgTechPhone", ent.phone]);
+                    entItems.push(["OrgTechEmail", ent.email]);
+                    entItems.push(["OrgTechRef", ent.ref, true]);
+                  } else if (prefix === "OrgAbuse") {
+                    entItems.push(["OrgAbuseHandle", ent.handle]);
+                    entItems.push(["OrgAbuseName", ent.name]);
+                    entItems.push(["OrgAbusePhone", ent.phone]);
+                    entItems.push(["OrgAbuseEmail", ent.email]);
+                    entItems.push(["OrgAbuseRef", ent.ref, true]);
+                  } else {
+                    entItems.push(["Handle", ent.handle]);
+                    entItems.push(["Name", ent.name]);
+                    entItems.push(["Roles", roles.join(", ")]);
+                    entItems.push(["Phone", ent.phone]);
+                    entItems.push(["Email", ent.email]);
+                    entItems.push(["Address", ent.address]);
+                    entItems.push(["Ref", ent.ref, true]);
+                  }
+
+                  htmlView.appendChild(createBlock(blockTitle, entItems));
+                });
+              }
+
+              // 3. Historical Domains
+              if (response.historical_domains && response.historical_domains.length > 0) {
+                const histTitle = document.createElement("h4");
+                histTitle.textContent = "Historical Intelligence (Associated Domains)";
+                histTitle.style.margin = "24px 0 8px 0";
+                htmlView.appendChild(histTitle);
+
+                const histBox = document.createElement("div");
+                histBox.style.cssText = "background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:16px;";
+                const domainList = response.historical_domains.map(d => `<span style="display:inline-block; background:#cbd5e1; color:#0f172a; padding:4px 10px; border-radius:4px; font-size:0.85rem; font-weight:500; margin:0 6px 6px 0;">${escapeHtml(d)}</span>`).join("");
+                histBox.innerHTML = `<div style="display:flex; flex-wrap:wrap;">${domainList}</div>`;
+                htmlView.appendChild(histBox);
+              }
+
+              if (response.raw) {
+                const rawSection = document.createElement("div");
+                rawSection.style.marginTop = "24px";
+                rawSection.innerHTML = `
+                  <h4 style="margin-bottom: 8px; font-size: 1rem; font-weight: 600;">Technical Reference:</h4>
+                  <pre style="background: #f8f9fa; padding: 12px; border-radius: 6px; overflow-x: auto; font-size: 0.85rem; white-space: pre-wrap; border:1px solid #eee;">${escapeHtml(response.raw || '')}</pre>
+                `;
+                htmlView.appendChild(rawSection);
+              }
+            } else {
+              htmlView.innerHTML = '<div class="info-box">No ASN information found for this query.</div>';
+            }
+            jsonView.textContent = JSON.stringify(data, null, 2);
+          } catch (err) {
+            errorMsg.textContent = "An error occurred while looking up ASN information.";
+            errorMsg.style.display = "block";
+            console.error(err);
+          } finally {
+            submitBtn.textContent = originalButtonText;
+            submitBtn.disabled = false;
+          }
+        });
+      })();
+    </script>
+  </body>
+</html>
