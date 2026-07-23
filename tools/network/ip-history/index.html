@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>IP History</title>
+    <meta name="description" content="Track the historical hosting changes of a domain over time. Helps identify suspicious hosting migrations, investigate compromised websites, and analyze the digital footprint of an organization.">
+    <meta property="og:title" content="IP History - Cyber Jagrithi">
+    <meta property="og:description" content="Track the historical hosting changes of a domain over time. Helps identify suspicious hosting migrations, investigate compromised websites, and analyze the digital footprint of an organization.">
+    <meta property="og:type" content="website">
+    <link rel="icon" type="image/png" href="../../favicon.png" />
+    <style>
+      body {
+        font-family: Segoe UI, Arial, sans-serif;
+        background: #f6f8fa;
+        margin: 0;
+      }
+      .container {
+        max-width: 1150px;
+        margin: 30px auto;
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        padding: 32px 32px 24px 32px;
+      }
+      h1 {
+        font-size: 2rem;
+        font-weight: 600;
+        margin-bottom: 8px;
+        color: #333;
+      }
+      .desc {
+        color: #555;
+        margin-bottom: 24px;
+      }
+      .search-box {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 24px;
+      }
+      .search-box input {
+        flex: 1;
+        padding: 12px;
+        border: 1px solid #d1d5db;
+        border-radius: 6px;
+        font-size: 1rem;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+      }
+      .search-box button {
+        background: #7a0000;
+        color: #fff;
+        border: none;
+        border-radius: 6px;
+        padding: 0 28px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.2s, opacity 0.2s;
+        min-width: 120px;
+      }
+      .search-box button:hover {
+        background: #5a0000;
+      }
+      .search-box button:disabled {
+        background: #7a0000;
+        opacity: 0.7;
+        cursor: not-allowed;
+      }
+      .loading-spinner-btn {
+        display: inline-block;
+        width: 12px;
+        height: 12px;
+        border: 2px solid #fff;
+        border-top: 2px solid transparent;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin-right: 8px;
+        vertical-align: middle;
+      }
+      .results-section {
+        display: none;
+        margin-top: 24px;
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        box-shadow: 0 1px 4px rgba(15, 23, 42, 0.08);
+        padding: 12px 16px 20px 16px;
+      }
+      .results-header {
+        display: flex;
+        justify-content: flex-start;
+        align-items: center;
+        margin-bottom: 16px;
+        flex-wrap: wrap;
+        gap: 16px;
+      }
+      .results-title {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: #333;
+        margin: 0;
+        margin-right: 16px;
+      }
+      .format-tabs {
+        display: flex;
+        background: #f3f4f6;
+        border-radius: 6px;
+        padding: 4px;
+        gap: 4px;
+        margin-right: auto;
+      }
+      .format-tab {
+        background: none;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 0.9rem;
+        font-weight: 500;
+        color: #666;
+        transition: all 0.2s;
+      }
+      .format-tab.active {
+        background: #fff;
+        color: #333;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      }
+      .action-icons {
+        display: flex;
+        gap: 8px;
+      }
+      .action-icon {
+        background: #f8f9fa;
+        border: 1px solid #e2e8f0;
+        padding: 8px;
+        border-radius: 6px;
+        cursor: pointer;
+        color: #4b5563;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 36px;
+        height: 36px;
+      }
+      .action-icon:hover {
+        background: #edf2f7;
+        color: #1a202c;
+        border-color: #cbd5e0;
+      }
+      .action-icon svg {
+        width: 18px;
+        height: 18px;
+      }
+      .tab-content {
+        background: #fff;
+        border-radius: 8px;
+        padding: 20px;
+        margin-top: 8px;
+      }
+      .html-view {
+        display: block;
+      }
+      .json-view {
+        display: none;
+        background: #f8f9fa;
+        border: 1px solid #e9ecef;
+        border-radius: 6px;
+        padding: 16px;
+        font-family: "Courier New", monospace;
+        font-size: 0.9rem;
+        white-space: pre-wrap;
+        overflow-x: auto;
+        max-height: 500px;
+        overflow-y: auto;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 8px;
+      }
+      th, td {
+        text-align: left;
+        padding: 12px 8px;
+        border-bottom: 1px solid #e5e7eb;
+      }
+      th {
+        background: #f9fafb;
+        color: #374151;
+        font-weight: 600;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+      tr:nth-child(even) { background: #fafbfc; }
+      tr:hover { background: #f1f5f9; }
+      .info-box {
+        background: #f8f9fa;
+        border: 1px solid #e5e7eb;
+        border-radius: 6px;
+        padding: 16px;
+        margin-bottom: 16px;
+        font-size: 0.9rem;
+        color: #555;
+      }
+      .error-msg {
+        color: #b91c1c;
+        background: #fee2e2;
+        padding: 12px 16px;
+        border-radius: 6px;
+        margin-bottom: 16px;
+        font-weight: 500;
+        border-left: 4px solid #b91c1c;
+        display: none;
+        margin-top: 24px;
+      }
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+      #header-include header h1 a { color: #fff !important; }
+      @media (max-width: 768px) {
+        .container { padding: 20px; }
+        .search-box { flex-direction: column; }
+        .search-box button { width: 100%; }
+        .results-header { flex-direction: column; align-items: flex-start; }
+        .format-tabs { margin-right: 0; width: 100%; margin-bottom: 12px; }
+        .action-icons { width: 100%; justify-content: flex-end; }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="header-include"></div>
+    <div class="container">
+      <h1>IP History</h1>
+      <div class="desc">
+        Shows a historical list of IP addresses a given domain name has been hosted on as well as where that IP address is geographically located, and the owner of that IP address.
+      </div>
+      <form class="search-box" id="ipHistoryForm" autocomplete="off">
+        <input
+          type="text"
+          id="domain"
+          placeholder="Enter domain (e.g. example.com)"
+          required
+          aria-label="Domain"
+        />
+        <button type="submit" id="submitBtn">Lookup</button>
+      </form>
+      <div id="error-msg" class="error-msg"></div>
+      <div class="results-section" id="resultsSection" style="display:none;">
+        <div class="results-header">
+          <h3 class="results-title" id="resultsTitle">Results</h3>
+          <div class="format-tabs">
+            <button type="button" class="format-tab active" data-format="html">HTML</button>
+            <button type="button" class="format-tab" data-format="json">JSON</button>
+          </div>
+          <div class="action-icons">
+            <button type="button" class="action-icon" id="copyBtn" title="Copy results">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+            </button>
+            <button type="button" class="action-icon" id="downloadBtn" title="Download results">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+              </svg>
+            </button>
+          </div>
+        </div>
+        <div class="tab-content">
+          <div class="html-view" id="htmlView"></div>
+          <div class="json-view" id="jsonView"></div>
+        </div>
+      </div>
+    </div>
+    <div id="footer-include"></div>
+    <script src="../../assets/js/utils.js"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        if (window.CJ && window.CJ.loadHeaderFooter) {
+            window.CJ.loadHeaderFooter("../../");
+        }
+      });
+    </script>
+    <script>
+      (function () {
+        let currentData = null;
+        let currentFormat = "html";
+        const form = document.getElementById("ipHistoryForm");
+        const input = document.getElementById("domain");
+        const submitBtn = document.getElementById("submitBtn");
+        const resultsSection = document.getElementById("resultsSection");
+        const resultsTitle = document.getElementById("resultsTitle");
+        const htmlView = document.getElementById("htmlView");
+        const jsonView = document.getElementById("jsonView");
+        const errorMsg = document.getElementById("error-msg");
+        const formatTabs = document.querySelectorAll(".format-tab");
+        const copyBtn = document.getElementById("copyBtn");
+        const downloadBtn = document.getElementById("downloadBtn");
+        function escapeHtml(text) {
+          if (!text) return text;
+          return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+        }
+        formatTabs.forEach((tab) => {
+          tab.addEventListener("click", function () {
+            currentFormat = this.dataset.format;
+            formatTabs.forEach((t) => t.classList.remove("active"));
+            this.classList.add("active");
+            if (currentFormat === "html") {
+              htmlView.style.display = "block";
+              jsonView.style.display = "none";
+            } else {
+              htmlView.style.display = "none";
+              jsonView.style.display = "block";
+            }
+          });
+        });
+        copyBtn.addEventListener("click", function () {
+          const textToCopy = currentFormat === "html" ? htmlView.textContent : jsonView.textContent;
+          navigator.clipboard.writeText(textToCopy).then(() => {
+            const originalTitle = this.title;
+            this.title = "Copied!";
+            const originalHTML = this.innerHTML;
+            this.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="green" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>';
+            setTimeout(() => {
+                this.title = originalTitle;
+                this.innerHTML = originalHTML;
+            }, 2000);
+          });
+        });
+        downloadBtn.addEventListener("click", function () {
+          if (!currentData) return;
+          const content = currentFormat === "html" ? htmlView.innerHTML : JSON.stringify(currentData, null, 2);
+          const blob = new Blob([content], { type: currentFormat === "html" ? "text/html" : "application/json" });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = `ip-history-${input.value.trim()}.${currentFormat}`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+        });
+        form.addEventListener("submit", async function (e) {
+          e.preventDefault();
+          const domain = input.value.trim();
+          if (!domain) return;
+          errorMsg.style.display = "none";
+          resultsSection.style.display = "none";
+          htmlView.innerHTML = "";
+          jsonView.innerHTML = "";
+          const originalButtonText = submitBtn.textContent;
+          submitBtn.innerHTML = '<span class="loading-spinner-btn"></span>Lookup...';
+          submitBtn.disabled = true;
+          try {
+            const resp = await fetch(`backend.php?domain=${encodeURIComponent(domain)}`);
+            const data = await resp.json();
+            currentData = data;
+            resultsSection.style.display = "block";
+            if (data && data.errors && data.errors.length > 0) {
+              errorMsg.textContent = data.errors[0];
+              errorMsg.style.display = "block";
+              if (typeof resultsSection !== "undefined" && resultsSection) resultsSection.style.display = "none";
+              jsonView.textContent = JSON.stringify(data, null, 2);
+              return;
+            }
+            const response = data && data.data ? data.data : {};
+            const history = Array.isArray(response.history) ? response.history : [];
+            resultsTitle.textContent = `Results for ${domain}`;
+            if (history.length === 0) {
+              const info = document.createElement("div");
+              info.className = "info-box";
+              const message = response.message || "No historical IP address data found for this domain.";
+              info.textContent = message;
+              htmlView.appendChild(info);
+            } else {
+              const summaryDiv = document.createElement("div");
+              summaryDiv.className = "info-box";
+              const firstOverall = response.first_seen_overall || "Unknown";
+              const lastOverall = response.latest_seen_overall || "Unknown";
+              const totalObs = response.total_observed || 0;
+              
+              summaryDiv.innerHTML = `
+                <div style="display:flex; justify-content:space-between; flex-wrap:wrap; gap:12px;">
+                    <div><strong>Total Observed Changes:</strong> ${totalObs}</div>
+                    <div><strong>First Observation:</strong> ${firstOverall}</div>
+                    <div><strong>Latest Observation:</strong> ${lastOverall}</div>
+                </div>
+              `;
+              htmlView.appendChild(summaryDiv);
+
+              // Create Timeline Container
+              const timelineContainer = document.createElement("div");
+              timelineContainer.className = "timeline";
+              
+              const timelineStyle = document.createElement("style");
+              timelineStyle.textContent = `
+                .timeline {
+                  position: relative;
+                  max-width: 800px;
+                  margin: 24px auto;
+                  padding-left: 30px;
+                }
+                .timeline::before {
+                  content: '';
+                  position: absolute;
+                  top: 0;
+                  left: 10px;
+                  height: 100%;
+                  width: 4px;
+                  background: #e2e8f0;
+                  border-radius: 2px;
+                }
+                .timeline-item {
+                  position: relative;
+                  margin-bottom: 24px;
+                  background: #fff;
+                  border: 1px solid #e2e8f0;
+                  border-radius: 8px;
+                  padding: 16px;
+                  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+                }
+                .timeline-item::before {
+                  content: '';
+                  position: absolute;
+                  top: 20px;
+                  left: -28px;
+                  width: 16px;
+                  height: 16px;
+                  border-radius: 50%;
+                  background: #7a0000;
+                  border: 3px solid #fff;
+                  box-shadow: 0 0 0 2px #fca5a5;
+                }
+                .timeline-header {
+                  display: flex;
+                  justify-content: space-between;
+                  align-items: center;
+                  margin-bottom: 12px;
+                  border-bottom: 1px solid #f1f5f9;
+                  padding-bottom: 8px;
+                }
+                .timeline-ip {
+                  font-size: 1.2rem;
+                  font-weight: 700;
+                  color: #1e293b;
+                }
+                .timeline-duration {
+                  font-size: 0.85rem;
+                  font-weight: 600;
+                  color: #059669;
+                  background: #d1fae5;
+                  padding: 4px 8px;
+                  border-radius: 4px;
+                }
+                .timeline-grid {
+                  display: grid;
+                  grid-template-columns: 1fr 1fr;
+                  gap: 12px;
+                  font-size: 0.9rem;
+                  color: #475569;
+                }
+                .timeline-grid div {
+                  display: flex;
+                  flex-direction: column;
+                }
+                .timeline-grid span.label {
+                  font-size: 0.75rem;
+                  text-transform: uppercase;
+                  color: #94a3b8;
+                  font-weight: 600;
+                  margin-bottom: 2px;
+                }
+                .timeline-grid span.val {
+                  color: #1e293b;
+                  font-weight: 500;
+                }
+              `;
+              htmlView.appendChild(timelineStyle);
+
+              history.forEach((record) => {
+                const item = document.createElement("div");
+                item.className = "timeline-item";
+                
+                const ipStr = escapeHtml(record.ip_address || "Unknown IP");
+                const fs = new Date(record.first_seen);
+                const ls = new Date(record.last_seen);
+                const diffTime = Math.abs(ls - fs);
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                const durationStr = diffDays === 1 ? '1 Day' : diffDays + ' Days';
+
+                const locStr = escapeHtml(record.country || "Unknown Location");
+                const ownerStr = escapeHtml(record.organization || "Unknown Owner");
+                const asnStr = escapeHtml(record.asn || "Unknown ASN");
+                const firstSeenStr = escapeHtml(record.first_seen || "Unknown");
+                const lastSeenStr = escapeHtml(record.last_seen || "Unknown");
+
+                let contentHtml = `
+                  <div class="timeline-header">
+                    <div class="timeline-ip">${ipStr}</div>
+                    <div class="timeline-duration">${durationStr} Active</div>
+                  </div>
+                  <div class="timeline-grid">
+                    <div><span class="label">First Seen</span><span class="val">${firstSeenStr}</span></div>
+                    <div><span class="label">Last Seen</span><span class="val">${lastSeenStr}</span></div>
+                    <div><span class="label">Organization</span><span class="val">${ownerStr}</span></div>
+                    <div><span class="label">Location</span><span class="val">${locStr}</span></div>
+                    <div><span class="label">ASN</span><span class="val">${asnStr}</span></div>
+                    <div><span class="label">Observation Count</span><span class="val">${record.observation_count || 1}</span></div>
+                  </div>
+                `;
+                item.innerHTML = contentHtml;
+                timelineContainer.appendChild(item);
+              });
+              
+              htmlView.appendChild(timelineContainer);
+            }
+            jsonView.textContent = JSON.stringify(data, null, 2);
+          } catch (err) {
+            errorMsg.textContent = "An error occurred while fetching IP history results.";
+            errorMsg.style.display = "block";
+            if (typeof resultsSection !== "undefined" && resultsSection) resultsSection.style.display = "none";
+            console.error(err);
+          } finally {
+            submitBtn.textContent = originalButtonText;
+            submitBtn.disabled = false;
+          }
+        });
+        window.CJ.autoLookup("ipHistoryForm", "domain");
+      })();
+    </script>
+  </body>
+</html>

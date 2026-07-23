@@ -1,0 +1,186 @@
+# Security Headers
+
+<IfModule mod_headers.c>
+    Header set X-Content-Type-Options "nosniff"
+    Header set X-Frame-Options "DENY"
+    Header set X-XSS-Protection "1; mode=block"
+    Header set Referrer-Policy "strict-origin-when-cross-origin"
+    # Header set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://unpkg.com; style-src 'self' 'unsafe-inline' https://unpkg.com; img-src 'self' data: https: *.openstreetmap.org; font-src 'self' https:; connect-src 'self' https://unpkg.com *.openstreetmap.org; frame-ancestors 'none';"
+</IfModule>
+
+# Prevent directory listing
+
+Options -Indexes
+
+# Protect sensitive files
+
+<FilesMatch "\.(htaccess|htpasswd|ini|log|sh|sql|bak|backup)$">
+Order Allow,Deny
+Deny from all
+</FilesMatch>
+
+# Protect db.php and db.local.php
+
+<FilesMatch "^(db|db\.local)\.php$">
+Order Allow,Deny
+Deny from all
+</FilesMatch>
+
+# Protect config files
+
+<FilesMatch "^(config|security/config)\.php$">
+Order Allow,Deny
+Deny from all
+</FilesMatch>
+
+# Protect database setup scripts
+
+<FilesMatch "^(db_setup|setup_dns_resolvers)\.php$">
+Order Allow,Deny
+Deny from all
+</FilesMatch>
+
+# Protect testing scripts
+
+<FilesMatch "^(security_test|performance_test)\.php$">
+Order Allow,Deny
+Deny from all
+</FilesMatch>
+
+# Enable compression
+
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css text/javascript application/javascript application/json
+</IfModule>
+
+# Browser caching
+
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresByType image/jpg "access plus 1 year"
+    ExpiresByType image/jpeg "access plus 1 year"
+    ExpiresByType image/gif "access plus 1 year"
+    ExpiresByType image/png "access plus 1 year"
+    ExpiresByType image/svg+xml "access plus 1 year"
+    ExpiresByType text/css "access plus 1 month"
+    ExpiresByType application/javascript "access plus 1 month"
+    ExpiresByType text/html "access plus 0 seconds"
+</IfModule>
+
+# Force HTTPS
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    # RewriteCond %{HTTPS} off
+    # RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+    # Short Aliases for Phase 6
+    RewriteRule ^whois/([^/]+)/?$ security/whois-lookup/index.html?q=$1 [L,QSA]
+    RewriteRule ^whois/?$ security/whois-lookup/index.html [L,QSA]
+    
+    RewriteRule ^reverse-ip/([^/]+)/?$ network/reverse-ip-lookup/index.html?q=$1 [L,QSA]
+    RewriteRule ^reverse-ip/?$ network/reverse-ip-lookup/index.html [L,QSA]
+    
+    RewriteRule ^reverse-whois/([^/]+)/?$ security/reverse-whois-lookup/index.html?q=$1 [L,QSA]
+    RewriteRule ^reverse-whois/?$ security/reverse-whois-lookup/index.html [L,QSA]
+    
+    RewriteRule ^ip-history/([^/]+)/?$ network/ip-history/index.html?q=$1 [L,QSA]
+    RewriteRule ^ip-history/?$ network/ip-history/index.html [L,QSA]
+    
+    RewriteRule ^dns-report/([^/]+)/?$ dns/dns-report/index.html?q=$1 [L,QSA]
+    RewriteRule ^dns-report/?$ dns/dns-report/index.html [L,QSA]
+    
+    RewriteRule ^reverse-mx/([^/]+)/?$ email/reverse-mx-lookup/index.html?q=$1 [L,QSA]
+    RewriteRule ^reverse-mx/?$ email/reverse-mx-lookup/index.html [L,QSA]
+    
+    RewriteRule ^reverse-ns/([^/]+)/?$ dns/reverse-ns-lookup/index.html?q=$1 [L,QSA]
+    RewriteRule ^reverse-ns/?$ dns/reverse-ns-lookup/index.html [L,QSA]
+    
+    RewriteRule ^ip-location/([^/]+)/?$ network/ip-location/index.html?q=$1 [L,QSA]
+    RewriteRule ^ip-location/?$ network/ip-location/index.html [L,QSA]
+    
+    RewriteRule ^dns-propagation/([^/]+)/?$ dns/dns-propagation/index.html?q=$1 [L,QSA]
+    RewriteRule ^dns-propagation/?$ dns/dns-propagation/index.html [L,QSA]
+    
+    RewriteRule ^site-down/([^/]+)/?$ web/site-down-checker/index.html?q=$1 [L,QSA]
+    RewriteRule ^site-down/?$ web/site-down-checker/index.html [L,QSA]
+    
+    RewriteRule ^http-headers/([^/]+)/?$ web/http-headers/index.html?q=$1 [L,QSA]
+    RewriteRule ^http-headers/?$ web/http-headers/index.html [L,QSA]
+    
+    RewriteRule ^dns-lookup/([^/]+)/?$ dns/dns-lookup/index.html?q=$1 [L,QSA]
+    RewriteRule ^dns-lookup/?$ dns/dns-lookup/index.html [L,QSA]
+    
+    RewriteRule ^port-scanner/([^/]+)/?$ network/port-scanner/index.html?q=$1 [L,QSA]
+    RewriteRule ^port-scanner/?$ network/port-scanner/index.html [L,QSA]
+    
+    RewriteRule ^traceroute/([^/]+)/?$ network/traceroute/index.html?q=$1 [L,QSA]
+    RewriteRule ^traceroute/?$ network/traceroute/index.html [L,QSA]
+    
+    RewriteRule ^spam-db/([^/]+)/?$ email/spam-database/index.html?q=$1 [L,QSA]
+    RewriteRule ^spam-db/?$ email/spam-database/index.html [L,QSA]
+    
+    RewriteRule ^reverse-dns/([^/]+)/?$ dns/reverse-dns/index.html?q=$1 [L,QSA]
+    RewriteRule ^reverse-dns/?$ dns/reverse-dns/index.html [L,QSA]
+    
+    RewriteRule ^asn-lookup/([^/]+)/?$ network/asn-lookup/index.html?q=$1 [L,QSA]
+    RewriteRule ^asn-lookup/?$ network/asn-lookup/index.html [L,QSA]
+    
+    RewriteRule ^ping/([^/]+)/?$ network/global-ping/index.html?q=$1 [L,QSA]
+    RewriteRule ^ping/?$ network/global-ping/index.html [L,QSA]
+    
+    RewriteRule ^dnssec/([^/]+)/?$ dns/dnssec-test/index.html?q=$1 [L,QSA]
+    RewriteRule ^dnssec/?$ dns/dnssec-test/index.html [L,QSA]
+    
+    RewriteRule ^url-decode/([^/]+)/?$ web/url-decode/index.html?q=$1 [L,QSA]
+    RewriteRule ^url-decode/?$ web/url-decode/index.html [L,QSA]
+    
+    RewriteRule ^abuse/([^/]+)/?$ email/abuse-lookup/index.html?q=$1 [L,QSA]
+    RewriteRule ^abuse/?$ email/abuse-lookup/index.html [L,QSA]
+    
+    RewriteRule ^mac-lookup/([^/]+)/?$ network/mac-lookup/index.html?q=$1 [L,QSA]
+    RewriteRule ^mac-lookup/?$ network/mac-lookup/index.html [L,QSA]
+    
+    RewriteRule ^free-email/([^/]+)/?$ email/free-email-test/index.html?q=$1 [L,QSA]
+    RewriteRule ^free-email/?$ email/free-email-test/index.html [L,QSA]
+
+    # Preserve old URLs
+    RewriteRule ^(dns-lookup|dns-propagation|dns-report|dnssec-test|reverse-dns|reverse-ns-lookup|nameserver-sites)(/.*)?$ dns/$1$2 [L,QSA]
+    RewriteRule ^(ip-history|ip-location|reverse-ip-lookup|port-scanner|traceroute|asn-lookup|global-ping|mac-lookup)(/.*)?$ network/$1$2 [L,QSA]
+    RewriteRule ^(abuse-lookup|free-email-test|reverse-mx-lookup|spam-database)(/.*)?$ email/$1$2 [L,QSA]
+    RewriteRule ^(http-headers|site-down-checker|url-decode)(/.*)?$ web/$1$2 [L,QSA]
+    RewriteRule ^(whois-lookup|reverse-whois-lookup)(/.*)?$ security/$1$2 [L,QSA]
+
+    # Handle SEO router for anything else
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^([^/]+)/(.+)$ seo_router.php [L,QSA]
+
+</IfModule>
+
+# HSTS (HTTP Strict Transport Security) - Enable after SSL is confirmed working
+
+<IfModule mod_headers.c>
+    Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+</IfModule>
+
+# Custom error pages
+
+ErrorDocument 404 /404.html
+ErrorDocument 403 /403.html
+ErrorDocument 500 /500.html
+
+# Prevent access to hidden files
+
+<FilesMatch "^\.">
+Order Allow,Deny
+Deny from all
+</FilesMatch>
+
+# PHP security settings
+
+<IfModule mod_php7.c>
+    php_flag display_errors Off
+    php_flag log_errors On
+    php_value error_log logs/php_errors.log
+</IfModule>

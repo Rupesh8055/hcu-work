@@ -1,0 +1,604 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Port Scanner</title>
+    <meta name="description" content="Identify open ports and services running on any IP address or domain. Essential for security assessments, vulnerability identification, and network infrastructure auditing.">
+    <meta property="og:title" content="Port Scanner - Cyber Jagrithi">
+    <meta property="og:description" content="Identify open ports and services running on any IP address or domain. Essential for security assessments, vulnerability identification, and network infrastructure auditing.">
+    <meta property="og:type" content="website">
+    <link rel="icon" type="image/png" href="../../favicon.png" />
+    <style>
+      body {
+        font-family:
+          Segoe UI,
+          Arial,
+          sans-serif;
+        background: #f6f8fa;
+        margin: 0;
+      }
+      .container {
+        max-width: 1150px;
+        margin: 30px auto;
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        padding: 32px 32px 24px 32px;
+      }
+      h1 {
+        font-size: 2rem;
+        font-weight: 600;
+        margin-bottom: 8px;
+        color: #333;
+      }
+      .desc {
+        color: #555;
+        margin-bottom: 24px;
+      }
+      .search-box {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 24px;
+      }
+      .search-box input {
+        flex: 1;
+        padding: 12px;
+        border: 1px solid #d1d5db;
+        border-radius: 6px;
+        font-size: 1rem;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+      }
+      .search-box button {
+        background: #7a0000;
+        color: #fff;
+        border: none;
+        border-radius: 6px;
+        padding: 0 28px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition:
+          background 0.2s,
+          opacity 0.2s;
+        min-width: 120px;
+      }
+      .search-box button:hover {
+        background: #5a0000;
+      }
+      .search-box button:disabled {
+        background: #7a0000;
+        opacity: 0.7;
+        cursor: not-allowed;
+      }
+      .loading-spinner-btn {
+        display: inline-block;
+        width: 12px;
+        height: 12px;
+        border: 2px solid #fff;
+        border-top: 2px solid transparent;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin-right: 8px;
+        vertical-align: middle;
+      }
+      .ports-info {
+        margin-bottom: 20px;
+        color: #800000;
+        font-size: 0.95rem;
+        background: #fff5f5;
+        border-left: 4px solid #800000;
+        padding: 12px 16px;
+        border-radius: 6px;
+        line-height: 1.5;
+      }
+      .results-section {
+        display: none;
+        margin-top: 24px;
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        box-shadow: 0 1px 4px rgba(15, 23, 42, 0.08);
+        padding: 12px 16px 20px 16px;
+      }
+      .results-header {
+        display: flex;
+        justify-content: flex-start;
+        align-items: center;
+        margin-bottom: 16px;
+        flex-wrap: wrap;
+        gap: 16px;
+      }
+      .results-title {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: #333;
+        margin: 0;
+        margin-right: 16px;
+      }
+      .format-tabs {
+        display: flex;
+        background: #f3f4f6;
+        border-radius: 6px;
+        padding: 4px;
+        gap: 4px;
+        margin-right: auto;
+      }
+      .format-tab {
+        background: none;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 0.9rem;
+        font-weight: 500;
+        color: #666;
+        transition: all 0.2s;
+      }
+      .format-tab.active {
+        background: #fff;
+        color: #333;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      }
+      .action-icons {
+        display: flex;
+        gap: 8px;
+      }
+      .action-icon {
+        background: #f8f9fa;
+        border: 1px solid #e2e8f0;
+        padding: 8px;
+        border-radius: 6px;
+        cursor: pointer;
+        color: #4b5563;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 36px;
+        height: 36px;
+      }
+      .action-icon:hover {
+        background: #edf2f7;
+        color: #1a202c;
+        border-color: #cbd5e0;
+      }
+      .action-icon svg {
+        width: 18px;
+        height: 18px;
+      }
+      .tab-content {
+        background: #fff;
+        border-radius: 8px;
+        padding: 20px;
+        margin-top: 8px;
+      }
+      .html-view {
+        display: block;
+      }
+      .json-view {
+        display: none;
+        background: #f8f9fa;
+        border: 1px solid #e9ecef;
+        border-radius: 6px;
+        padding: 16px;
+        font-family: "Courier New", monospace;
+        font-size: 0.9rem;
+        white-space: pre-wrap;
+        overflow-x: auto;
+        max-height: 500px;
+        overflow-y: auto;
+      }
+      .scan-summary {
+        background: #f8f9fa;
+        border: 1px solid #e5e7eb;
+        border-radius: 6px;
+        padding: 12px 16px;
+        margin-bottom: 16px;
+        font-size: 0.9rem;
+        color: #666;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 8px;
+      }
+      th,
+      td {
+        text-align: left;
+        padding: 12px 8px;
+        border-bottom: 1px solid #e5e7eb;
+      }
+      th {
+        background: #f9fafb;
+        color: #374151;
+        font-weight: 600;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+      tr:nth-child(even) {
+        background: #fafbfc;
+      }
+      tr:hover {
+        background: #f1f5f9;
+      }
+      .status-open {
+        color: #059669;
+        font-weight: 600;
+        background: #d1fae5;
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        text-transform: uppercase;
+      }
+      .status-closed {
+        color: #dc2626;
+        font-weight: 600;
+        background: #fee2e2;
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        text-transform: uppercase;
+      }
+      .status-filtered {
+        color: #d97706;
+        font-weight: 600;
+        background: #fef3c7;
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        text-transform: uppercase;
+      }
+      .error-msg {
+        color: #b91c1c;
+        background: #fee2e2;
+        padding: 12px 16px;
+        border-radius: 6px;
+        margin-bottom: 16px;
+        font-weight: 500;
+        border-left: 4px solid #b91c1c;
+        display: none;
+        margin-top: 24px;
+      }
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+      #header-include header h1 a {
+        color: #fff !important;
+      }
+      @media (max-width: 768px) {
+        .container {
+          padding: 20px;
+        }
+        .search-box {
+          flex-direction: column;
+        }
+        .search-box button {
+          width: 100%;
+        }
+        .results-header {
+          flex-direction: column;
+          align-items: flex-start;
+        }
+        .format-tabs {
+          margin-right: 0;
+          width: 100%;
+          margin-bottom: 12px;
+        }
+        .action-icons {
+          width: 100%;
+          justify-content: flex-end;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="header-include"></div>
+    <div class="container">
+      <h1>Port Scanner</h1>
+      <div class="desc">
+        Scan for open ports on any host. Enter a hostname or IP address and
+        specify ports to scan.
+      </div>
+      <div class="ports-info">
+        <strong>Coverage:</strong> Scanning the Top 50 most common TCP ports (Web, SSH, Database, FTP, etc.)
+      </div>
+      <form class="search-box" id="portScannerForm" autocomplete="off">
+        <input
+          type="text"
+          id="host"
+          placeholder="Enter hostname or IP"
+          required
+          aria-label="Host"
+        />
+        <button type="submit" id="submitBtn">Scan</button>
+      </form>
+      <div id="error-msg" class="error-msg"></div>
+      <div class="results-section" id="resultsSection" style="display: none">
+        <div class="results-header">
+          <h3 class="results-title" id="resultsTitle">Results</h3>
+          <div class="format-tabs">
+            <button type="button" class="format-tab active" data-format="html">
+              HTML
+            </button>
+            <button type="button" class="format-tab" data-format="json">
+              JSON
+            </button>
+          </div>
+          <div class="action-icons">
+            <button
+              type="button"
+              class="action-icon"
+              id="copyBtn"
+              title="Copy results"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path
+                  d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"
+                ></path>
+              </svg>
+            </button>
+            <button
+              type="button"
+              class="action-icon"
+              id="downloadBtn"
+              title="Download results"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+              </svg>
+            </button>
+          </div>
+        </div>
+        <div class="tab-content">
+          <div class="html-view" id="htmlView"></div>
+          <div class="json-view" id="jsonView"></div>
+        </div>
+      </div>
+    </div>
+    <div id="footer-include"></div>
+    <script src="../../assets/js/utils.js"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        if (window.CJ && window.CJ.loadHeaderFooter) {
+            window.CJ.loadHeaderFooter("../../");
+        }
+      });
+    </script>
+    <script>
+      (function () {
+        let currentData = null;
+        let currentFormat = "html";
+        let currentPage = 1;
+        const itemsPerPage = 15;
+        const form = document.getElementById("portScannerForm");
+        const input = document.getElementById("host");
+        const submitBtn = document.getElementById("submitBtn");
+        const resultsSection = document.getElementById("resultsSection");
+        const resultsTitle = document.getElementById("resultsTitle");
+        const htmlView = document.getElementById("htmlView");
+        const jsonView = document.getElementById("jsonView");
+        const errorMsg = document.getElementById("error-msg");
+        const formatTabs = document.querySelectorAll(".format-tab");
+        const copyBtn = document.getElementById("copyBtn");
+        const downloadBtn = document.getElementById("downloadBtn");
+        function escapeHtml(text) {
+          if (!text) return text;
+          return text
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+        }
+        formatTabs.forEach((tab) => {
+          tab.addEventListener("click", function () {
+            currentFormat = this.dataset.format;
+            formatTabs.forEach((t) => t.classList.remove("active"));
+            this.classList.add("active");
+            if (currentFormat === "html") {
+              htmlView.style.display = "block";
+              jsonView.style.display = "none";
+            } else {
+              htmlView.style.display = "none";
+              jsonView.style.display = "block";
+            }
+          });
+        });
+        copyBtn.addEventListener("click", function () {
+          const textToCopy =
+            currentFormat === "html"
+              ? htmlView.textContent
+              : jsonView.textContent;
+          navigator.clipboard.writeText(textToCopy).then(() => {
+            const originalTitle = this.title;
+            this.title = "Copied!";
+            const originalHTML = this.innerHTML;
+            this.innerHTML =
+              '<svg viewBox="0 0 24 24" fill="none" stroke="green" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>';
+            setTimeout(() => {
+              this.title = originalTitle;
+              this.innerHTML = originalHTML;
+            }, 2000);
+          });
+        });
+        downloadBtn.addEventListener("click", function () {
+          if (!currentData) return;
+          const content =
+            currentFormat === "html"
+              ? htmlView.innerHTML
+              : JSON.stringify(currentData, null, 2);
+          const blob = new Blob([content], {
+            type: currentFormat === "html" ? "text/html" : "application/json",
+          });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = `port-scan-${input.value.trim()}.${currentFormat}`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+        });
+        form.addEventListener("submit", async function (e) {
+          e.preventDefault();
+          const host = input.value.trim();
+          if (!host) {
+            errorMsg.textContent = "Please enter a hostname or IP address.";
+            errorMsg.style.display = "block";
+            if (typeof resultsSection !== "undefined" && resultsSection) resultsSection.style.display = "none";
+            return;
+          }
+          errorMsg.style.display = "none";
+          resultsSection.style.display = "none";
+          
+          let url = `backend.php?host=${encodeURIComponent(host)}`;
+
+          htmlView.innerHTML = "";
+          jsonView.innerHTML = "";
+          const originalButtonText = submitBtn.textContent;
+          submitBtn.innerHTML =
+            '<span class="loading-spinner-btn"></span>Scanning...';
+          submitBtn.disabled = true;
+          try {
+            const resp = await fetch(url);
+            const data = await resp.json();
+            currentData = data;
+            resultsSection.style.display = "block";
+            if (data && data.errors && data.errors.length > 0) {
+              errorMsg.textContent = data.errors[0];
+              errorMsg.style.display = "block";
+              if (typeof resultsSection !== "undefined" && resultsSection) resultsSection.style.display = "none";
+              return;
+            }
+            const response = data && data.data ? data.data : {};
+            resultsTitle.textContent = `Results for ${response.host || host}`;
+            const openCount = response.open_ports
+              ? response.open_ports.length
+              : 0;
+            const closedCount = response.closed_ports
+              ? response.closed_ports.length
+              : 0;
+            const filteredCount = response.filtered_ports
+              ? response.filtered_ports.length
+              : 0;
+            const summaryDiv = document.createElement("div");
+            summaryDiv.className = "scan-summary";
+            summaryDiv.textContent = `Found ${openCount} open ports, ${closedCount} closed ports, and ${filteredCount} filtered ports out of ${response.scanned_ports_count || 0} scanned ports.`;
+            htmlView.appendChild(summaryDiv);
+            if (response.results && response.results.length > 0) {
+              // Store results in window to handle pagination
+              window.currentScanResults = response.results;
+              currentPage = 1;
+              renderTable();
+            } else {
+              htmlView.innerHTML +=
+                '<div class="no-results" style="padding: 16px; color: #666;">No results available.</div>';
+            }
+            jsonView.textContent = JSON.stringify(data, null, 2);
+          } catch (err) {
+            errorMsg.textContent = "An error occurred while scanning ports.";
+            errorMsg.style.display = "block";
+            if (typeof resultsSection !== "undefined" && resultsSection) resultsSection.style.display = "none";
+            console.error(err);
+          } finally {
+            submitBtn.textContent = originalButtonText;
+            submitBtn.disabled = false;
+          }
+        });
+
+        function renderTable() {
+            const results = window.currentScanResults || [];
+            const totalPages = Math.ceil(results.length / itemsPerPage);
+            
+            // Remove existing table & pagination
+            const existingTable = htmlView.querySelector("table");
+            if (existingTable) existingTable.remove();
+            const existingPagination = htmlView.querySelector(".pagination");
+            if (existingPagination) existingPagination.remove();
+
+            const table = document.createElement("table");
+            table.innerHTML = `
+              <tr>
+                <th>Port</th>
+                <th>Protocol</th>
+                <th>State</th>
+                <th>Service</th>
+                <th>Response Time</th>
+              </tr>
+            `;
+
+            const startIndex = (currentPage - 1) * itemsPerPage;
+            const paginatedResults = results.slice(startIndex, startIndex + itemsPerPage);
+
+            paginatedResults.forEach((result) => {
+              const tr = document.createElement("tr");
+              const statusClass = `status-${result.status}`;
+              const statusText = result.status.toUpperCase();
+              const explanation = result.state_explanation || "";
+              tr.innerHTML = `
+                <td>${escapeHtml(String(result.port))}</td>
+                <td>TCP</td>
+                <td><span class="${escapeHtml(statusClass)}" title="${escapeHtml(explanation)}" style="cursor:help;">${escapeHtml(statusText)}</span></td>
+                <td>${escapeHtml(result.service || "unknown")}</td>
+                <td>${escapeHtml(String(result.response_time))}ms</td>
+              `;
+              table.appendChild(tr);
+            });
+            htmlView.appendChild(table);
+
+            if (totalPages > 1) {
+                const paginationDiv = document.createElement("div");
+                paginationDiv.className = "pagination";
+                paginationDiv.style.cssText = "display: flex; justify-content: center; gap: 8px; margin-top: 16px;";
+                
+                const prevBtn = document.createElement("button");
+                prevBtn.textContent = "Previous";
+                prevBtn.disabled = currentPage === 1;
+                prevBtn.style.cssText = "padding: 6px 12px; border: 1px solid #d1d5db; background: " + (currentPage === 1 ? "#f3f4f6" : "#fff") + "; border-radius: 4px; cursor: " + (currentPage === 1 ? "not-allowed" : "pointer") + ";";
+                prevBtn.onclick = () => { if (currentPage > 1) { currentPage--; renderTable(); } };
+                
+                const pageInfo = document.createElement("span");
+                pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
+                pageInfo.style.cssText = "align-self: center; font-size: 0.9rem; color: #555;";
+
+                const nextBtn = document.createElement("button");
+                nextBtn.textContent = "Next";
+                nextBtn.disabled = currentPage === totalPages;
+                nextBtn.style.cssText = "padding: 6px 12px; border: 1px solid #d1d5db; background: " + (currentPage === totalPages ? "#f3f4f6" : "#fff") + "; border-radius: 4px; cursor: " + (currentPage === totalPages ? "not-allowed" : "pointer") + ";";
+                nextBtn.onclick = () => { if (currentPage < totalPages) { currentPage++; renderTable(); } };
+
+                paginationDiv.appendChild(prevBtn);
+                paginationDiv.appendChild(pageInfo);
+                paginationDiv.appendChild(nextBtn);
+                htmlView.appendChild(paginationDiv);
+            }
+        }
+        window.CJ.autoLookup("portScannerForm", "host");
+      })();
+    </script>
+  </body>
+</html>

@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Spam Database Lookup</title>
+    <meta name="description" content="Check if an IP address or domain is listed in major spam blacklists and reputation databases. Critical for troubleshooting email delivery issues and monitoring organizational IP reputation.">
+    <meta property="og:title" content="Spam Database Lookup - Cyber Jagrithi">
+    <meta property="og:description" content="Check if an IP address or domain is listed in major spam blacklists and reputation databases. Critical for troubleshooting email delivery issues and monitoring organizational IP reputation.">
+    <meta property="og:type" content="website">
+    <link rel="icon" type="image/png" href="../../favicon.png" />
+    <style>
+      body {
+        font-family: Segoe UI, Arial, sans-serif;
+        background: #f6f8fa;
+        margin: 0;
+      }
+      .container {
+        max-width: 1150px;
+        margin: 30px auto;
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        padding: 32px 32px 24px 32px;
+      }
+      h1 {
+        font-size: 2rem;
+        font-weight: 600;
+        margin-bottom: 8px;
+        color: #333;
+      }
+      .desc {
+        color: #555;
+        margin-bottom: 24px;
+      }
+      .search-box {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 24px;
+      }
+      .search-box input {
+        flex: 1;
+        padding: 12px;
+        border: 1px solid #d1d5db;
+        border-radius: 6px;
+        font-size: 1rem;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+      }
+      .search-box button {
+        background: #7a0000;
+        color: #fff;
+        border: none;
+        border-radius: 6px;
+        padding: 0 28px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.2s, opacity 0.2s;
+        min-width: 120px;
+      }
+      .search-box button:hover {
+        background: #5a0000;
+      }
+      .search-box button:disabled {
+        background: #7a0000;
+        opacity: 0.7;
+        cursor: not-allowed;
+      }
+      .loading-spinner-btn {
+        display: inline-block;
+        width: 12px;
+        height: 12px;
+        border: 2px solid #fff;
+        border-top: 2px solid transparent;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin-right: 8px;
+        vertical-align: middle;
+      }
+      .results-section {
+        display: none;
+        margin-top: 24px;
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        box-shadow: 0 1px 4px rgba(15, 23, 42, 0.08);
+        padding: 12px 16px 20px 16px;
+      }
+      .results-header {
+        display: flex;
+        justify-content: flex-start;
+        align-items: center;
+        margin-bottom: 16px;
+        flex-wrap: wrap;
+        gap: 16px;
+      }
+      .results-title {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: #333;
+        margin: 0;
+        margin-right: 16px;
+      }
+      .format-tabs {
+        display: flex;
+        background: #f3f4f6;
+        border-radius: 6px;
+        padding: 4px;
+        gap: 4px;
+        margin-right: auto;
+      }
+      .format-tab {
+        background: none;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 0.9rem;
+        font-weight: 500;
+        color: #666;
+        transition: all 0.2s;
+      }
+      .format-tab.active {
+        background: #fff;
+        color: #333;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      }
+      .tab-content {
+        background: #fff;
+        border-radius: 8px;
+        padding: 20px;
+        margin-top: 8px;
+      }
+      .html-view {
+        display: block;
+      }
+      .json-view {
+        display: none;
+        background: #f8f9fa;
+        border: 1px solid #e9ecef;
+        border-radius: 6px;
+        padding: 16px;
+        font-family: "Courier New", monospace;
+        font-size: 0.9rem;
+        white-space: pre-wrap;
+        overflow-x: auto;
+        max-height: 500px;
+        overflow-y: auto;
+      }
+      .error-msg {
+        color: #b91c1c;
+        background: #fee2e2;
+        padding: 12px 16px;
+        border-radius: 6px;
+        margin-bottom: 16px;
+        font-weight: 500;
+        border-left: 4px solid #b91c1c;
+        display: none;
+        margin-top: 24px;
+      }
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+      table {
+         width: 100%;
+         border-collapse: collapse;
+         margin-top: 16px;
+      }
+      th, td {
+         padding: 12px 16px;
+         text-align: left;
+         border-bottom: 1px solid #e5e7eb;
+      }
+      th {
+         background: #f8fafc;
+         font-weight: 600;
+         color: #4b5563;
+         text-transform: uppercase;
+         font-size: 0.85rem;
+      }
+      .status-listed {
+         background: #fee2e2;
+         color: #991b1b;
+         padding: 4px 8px;
+         border-radius: 4px;
+         font-weight: 600;
+         font-size: 0.85rem;
+         display: inline-block;
+      }
+      .status-clean {
+         background: #d1fae5;
+         color: #065f46;
+         padding: 4px 8px;
+         border-radius: 4px;
+         font-weight: 600;
+         font-size: 0.85rem;
+         display: inline-block;
+      }
+      .category-tag {
+         background: #f1f5f9;
+         color: #64748b;
+         padding: 2px 6px;
+         border-radius: 4px;
+         font-size: 0.8rem;
+         font-family: inherit;
+      }
+      #header-include header h1 a { color: #fff !important; }
+      @media (max-width: 768px) {
+        .container { padding: 20px; }
+        .search-box { flex-direction: column; }
+        .search-box button { width: 100%; }
+        .results-header { flex-direction: column; align-items: flex-start; }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="header-include"></div>
+    <div class="container">
+      <h1>Spam Database Lookup</h1>
+      <div class="desc">
+        Ultra-fast spam database checker with 10 major DNS blacklists. Find out
+        if your mail server is listed in any spam databases - also knows as DNS
+        blacklists (DNSBL).
+      </div>
+      <form class="search-box" id="spamCheckForm" autocomplete="off">
+        <input
+          type="text"
+          id="query"
+          placeholder="Enter IP address or domain (e.g. 8.8.8.8 or example.com)"
+          required
+          aria-label="IP Address or Domain"
+        />
+        <button type="submit" id="submitBtn">Check Blacklists</button>
+      </form>
+      <div id="error-msg" class="error-msg"></div>
+      <div class="results-section" id="resultsSection" style="display:none;">
+        <div class="results-header">
+          <h3 class="results-title" id="resultsTitle">Results</h3>
+          <div class="format-tabs">
+            <button type="button" class="format-tab active" data-format="html">HTML</button>
+            <button type="button" class="format-tab" data-format="json">JSON</button>
+          </div>
+        </div>
+        <div class="tab-content">
+          <div class="html-view" id="htmlView"></div>
+          <div class="json-view" id="jsonView"></div>
+        </div>
+      </div>
+    </div>
+    <div id="footer-include"></div>
+    <script src="../../assets/js/utils.js"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        if (window.CJ && window.CJ.loadHeaderFooter) {
+            window.CJ.loadHeaderFooter("../../");
+        }
+      });
+    </script>
+    <script>
+      (function () {
+        let currentData = null;
+        let currentFormat = "html";
+        const form = document.getElementById("spamCheckForm");
+        const input = document.getElementById("query");
+        const submitBtn = document.getElementById("submitBtn");
+        const resultsSection = document.getElementById("resultsSection");
+        const resultsTitle = document.getElementById("resultsTitle");
+        const htmlView = document.getElementById("htmlView");
+        const jsonView = document.getElementById("jsonView");
+        const errorMsg = document.getElementById("error-msg");
+        const formatTabs = document.querySelectorAll(".format-tab");
+        function escapeHtml(text) {
+          if (!text) return text;
+          return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+        }
+        function getCategory(dnsbl) {
+           if (dnsbl.includes("spamhaus")) return "Spamhaus";
+           if (dnsbl.includes("abuse.ch")) return "Abuse.ch";
+           if (dnsbl.includes("spamcop") || dnsbl.includes("sorbs") || dnsbl.includes("abuseat")) return "Major Provider";
+           if (dnsbl.includes("uceprotect")) return "UCEProtect";
+           if (dnsbl.includes("surbl")) return "SURBL";
+           return "General";
+        }
+        formatTabs.forEach((tab) => {
+          tab.addEventListener("click", function () {
+            currentFormat = this.dataset.format;
+            formatTabs.forEach((t) => t.classList.remove("active"));
+            this.classList.add("active");
+            if (currentFormat === "html") {
+              htmlView.style.display = "block";
+              jsonView.style.display = "none";
+            } else {
+              htmlView.style.display = "none";
+              jsonView.style.display = "block";
+            }
+          });
+        });
+        form.addEventListener("submit", async function (e) {
+          e.preventDefault();
+          const query = input.value.trim();
+          if (!query) return;
+          errorMsg.style.display = "none";
+          resultsSection.style.display = "none";
+          htmlView.innerHTML = "";
+          jsonView.innerHTML = "";
+          const originalButtonText = submitBtn.textContent;
+          submitBtn.innerHTML = '<span class="loading-spinner-btn"></span>Checking...';
+          submitBtn.disabled = true;
+          try {
+            const resp = await fetch(`backend.php?query=${encodeURIComponent(query)}`);
+            const data = await resp.json();
+            currentData = data;
+            resultsSection.style.display = "block";
+
+            if (data && data.errors && data.errors.length > 0) {
+              errorMsg.textContent = data.errors[0];
+              errorMsg.style.display = "block";
+              if (typeof resultsSection !== "undefined" && resultsSection) resultsSection.style.display = "none";
+              return;
+            }
+
+            if (data && data.data && data.data.error) {
+              errorMsg.textContent = data.data.error;
+              errorMsg.style.display = "block";
+            if (typeof resultsSection !== "undefined" && resultsSection) resultsSection.style.display = "none";
+              jsonView.textContent = JSON.stringify(data, null, 2);
+              return;
+            }
+            const response = data.data || data;
+            resultsTitle.textContent = `Results for '${response.resolved_ip || query}'`;
+            const results = (Array.isArray(response.results)) ? response.results : [];
+            if (results.length > 0) {
+               const table = document.createElement("table");
+               table.innerHTML = `
+                  <thead>
+                    <tr>
+                      <th>Blacklist</th>
+                      <th>Status</th>
+                      <th>Response Time</th>
+                      <th>Category</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+               `;
+               results.forEach(r => {
+                  const statusClass = r.listed ? "status-listed" : "status-clean";
+                  const statusText = r.listed ? "LISTED" : "CLEAN";
+                  const category = getCategory(r.dnsbl);
+                  table.innerHTML += `
+                    <tr>
+                      <td style="font-weight:500; color:#1e293b">${escapeHtml(r.dnsbl.toUpperCase())}</td>
+                      <td><span class="${statusClass}">${statusText}</span></td>
+                      <td style="color:#64748b">${r.response_time ? r.response_time + 'ms' : 'N/A'}</td>
+                      <td><span class="category-tag">${category}</span></td>
+                    </tr>
+                  `;
+               });
+               table.innerHTML += "</tbody>";
+               htmlView.appendChild(table);
+            } else {
+               htmlView.innerHTML = '<div style="padding:20px; text-align:center; color:#666;">No results returned from backend.</div>';
+            }
+            jsonView.textContent = JSON.stringify(data, null, 2);
+          } catch (err) {
+            errorMsg.textContent = "An error occurred while checking blacklists.";
+            errorMsg.style.display = "block";
+            if (typeof resultsSection !== "undefined" && resultsSection) resultsSection.style.display = "none";
+            console.error(err);
+          } finally {
+            submitBtn.textContent = originalButtonText;
+            submitBtn.disabled = false;
+          }
+        });
+        window.CJ.autoLookup("spamCheckForm", "query");
+      })();
+    </script>
+  </body>
+</html>

@@ -1,0 +1,664 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Global Ping</title>
+    <meta
+      name="description"
+      content="Measure network latency from multiple international locations to your server. Valuable for evaluating global performance, troubleshooting regional access issues, and CDN optimization."
+    />
+    <meta property="og:title" content="Global Ping Test - Cyber Jagrithi" />
+    <meta
+      property="og:description"
+      content="Measure network latency from multiple international locations to your server. Valuable for evaluating global performance, troubleshooting regional access issues, and CDN optimization."
+    />
+    <meta property="og:type" content="website" />
+    <link rel="icon" type="image/png" href="../../favicon.png" />
+    <link
+      rel="stylesheet"
+      href="../../assets/leaflet/leaflet.css"
+      onerror="this.href='https://unpkg.com/leaflet@1.9.4/dist/leaflet.css'"
+    />
+    <script src="../../assets/leaflet/leaflet.js" onerror="this.src='https://unpkg.com/leaflet@1.9.4/dist/leaflet.js'"></script>
+    <script></script>
+    <style>
+      body {
+        font-family:
+          Segoe UI,
+          Arial,
+          sans-serif;
+        background: #f6f8fa;
+        margin: 0;
+      }
+      .container {
+        max-width: 1400px;
+        margin: 30px auto;
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        padding: 32px 32px 24px 32px;
+      }
+      h1 {
+        font-size: 2rem;
+        font-weight: 600;
+        margin-bottom: 8px;
+        color: #333;
+      }
+      .desc {
+        color: #555;
+        margin-bottom: 24px;
+      }
+      .search-box {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 24px;
+      }
+      .search-box input {
+        flex: 1;
+        padding: 12px;
+        border: 1px solid #d1d5db;
+        border-radius: 6px;
+        font-size: 1rem;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+      }
+      .search-box button {
+        background: #7a0000;
+        color: #fff;
+        border: none;
+        border-radius: 6px;
+        padding: 0 28px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition:
+          background 0.2s,
+          opacity 0.2s;
+        min-width: 120px;
+      }
+      .search-box button:hover {
+        background: #5a0000;
+      }
+      .search-box button:disabled {
+        background: #7a0000;
+        opacity: 0.7;
+        cursor: not-allowed;
+      }
+      .loading-spinner-btn {
+        display: inline-block;
+        width: 12px;
+        height: 12px;
+        border: 2px solid #fff;
+        border-top: 2px solid transparent;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin-right: 8px;
+        vertical-align: middle;
+      }
+      .results-section {
+        display: none;
+        margin-top: 24px;
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        box-shadow: 0 1px 4px rgba(15, 23, 42, 0.08);
+        padding: 12px 16px 20px 16px;
+      }
+      .results-header {
+        display: flex;
+        justify-content: flex-start;
+        align-items: center;
+        margin-bottom: 16px;
+        flex-wrap: wrap;
+        gap: 16px;
+      }
+      .results-title {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: #333;
+        margin: 0;
+        margin-right: 16px;
+      }
+      .format-tabs {
+        display: flex;
+        background: #f3f4f6;
+        border-radius: 6px;
+        padding: 4px;
+        gap: 4px;
+        margin-right: auto;
+      }
+      .format-tab {
+        background: none;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 0.9rem;
+        font-weight: 500;
+        color: #666;
+        transition: all 0.2s;
+      }
+      .format-tab.active {
+        background: #fff;
+        color: #333;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      }
+      .action-icons {
+        display: flex;
+        gap: 8px;
+      }
+      .action-icon {
+        background: #f8f9fa;
+        border: 1px solid #e2e8f0;
+        padding: 8px;
+        border-radius: 6px;
+        cursor: pointer;
+        color: #4b5563;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 36px;
+        height: 36px;
+      }
+      .action-icon:hover {
+        background: #edf2f7;
+        color: #1a202c;
+        border-color: #cbd5e0;
+      }
+      .action-icon svg {
+        width: 18px;
+        height: 18px;
+      }
+      .map-container {
+        width: 100%;
+        height: 450px;
+        border-radius: 8px;
+        margin-bottom: 24px;
+        border: 1px solid #e5e7eb;
+        z-index: 1;
+      }
+      .tab-content {
+        background: #fff;
+        border-radius: 8px;
+        padding: 20px;
+        margin-top: 8px;
+      }
+      .html-view {
+        display: block;
+      }
+      .json-view {
+        display: none;
+        background: #f8f9fa;
+        border: 1px solid #e9ecef;
+        border-radius: 6px;
+        padding: 16px;
+        font-family: "Courier New", monospace;
+        font-size: 0.9rem;
+        white-space: pre-wrap;
+        overflow-x: auto;
+        max-height: 500px;
+        overflow-y: auto;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 16px;
+      }
+      th,
+      td {
+        text-align: left;
+        padding: 12px 8px;
+        border-bottom: 1px solid #e5e7eb;
+      }
+      th {
+        background: #f9fafb;
+        color: #374151;
+        font-weight: 600;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+      tr:nth-child(even) {
+        background: #fafbfc;
+      }
+      tr:hover {
+        background: #f1f5f9;
+      }
+      .region-header {
+        background-color: #e5e7eb !important;
+        color: #1f2937;
+        font-weight: 700;
+        padding: 8px 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        border-top: 2px solid #d1d5db;
+      }
+      .status-pass {
+        color: #059669;
+        font-weight: 600;
+      }
+      .status-fail {
+        color: #dc2626;
+        font-weight: 600;
+      }
+      .error-msg {
+        color: #b91c1c;
+        background: #fee2e2;
+        padding: 12px 16px;
+        border-radius: 6px;
+        margin-bottom: 16px;
+        font-weight: 500;
+        border-left: 4px solid #b91c1c;
+        display: none;
+        margin-top: 24px;
+      }
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+      #header-include header h1 a {
+        color: #fff !important;
+      }
+      @media (max-width: 768px) {
+        .container {
+          padding: 20px;
+        }
+        .search-box {
+          flex-direction: column;
+        }
+        .search-box button {
+          width: 100%;
+        }
+        .results-header {
+          flex-direction: column;
+          align-items: flex-start;
+        }
+        .format-tabs {
+          margin-right: 0;
+          width: 100%;
+          margin-bottom: 12px;
+        }
+        .action-icons {
+          width: 100%;
+          justify-content: flex-end;
+        }
+        .map-container {
+          height: 300px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="header-include"></div>
+    <div class="container">
+      <h1>Global Ping Test</h1>
+      <div class="desc">
+        Ping a server from multiple locations worldwide to check latency and
+        availability.
+      </div>
+      <form class="search-box" id="pingForm" autocomplete="off">
+        <input
+          type="text"
+          id="host"
+          placeholder="Enter IP or domain (e.g. 8.8.8.8)"
+          required
+          aria-label="IP or Domain"
+        />
+        <button type="submit" id="submitBtn">Ping</button>
+      </form>
+      <div id="error-msg" class="error-msg"></div>
+      <div class="results-section" id="resultsSection" style="display: none">
+        <div class="results-header">
+          <h3 class="results-title" id="resultsTitle">Results</h3>
+          <div class="format-tabs">
+            <button type="button" class="format-tab active" data-format="html">
+              HTML
+            </button>
+            <button type="button" class="format-tab" data-format="json">
+              JSON
+            </button>
+          </div>
+          <div class="action-icons">
+            <button
+              type="button"
+              class="action-icon"
+              id="copyBtn"
+              title="Copy results"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path
+                  d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"
+                ></path>
+              </svg>
+            </button>
+            <button
+              type="button"
+              class="action-icon"
+              id="downloadBtn"
+              title="Download results"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+              </svg>
+            </button>
+          </div>
+        </div>
+        <div class="tab-content">
+          <div class="html-view" id="htmlView">
+            <div class="map-container" id="mapContainer"></div>
+            <div
+              style="
+                text-align: center;
+                font-size: 0.8rem;
+                color: #666;
+                margin-bottom: 16px;
+              "
+            >
+              Leaflet | © OpenStreetMap contributors
+            </div>
+            <div id="resultsTable"></div>
+          </div>
+          <div class="json-view" id="jsonView"></div>
+        </div>
+      </div>
+    </div>
+    <div id="footer-include"></div>
+    <script src="../../assets/js/utils.js"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        if (window.CJ && window.CJ.loadHeaderFooter) {
+            window.CJ.loadHeaderFooter("../../");
+        }
+      });
+    </script>
+    <script>
+      (function () {
+        let currentData = null;
+        let currentFormat = "html";
+        let markers = [];
+        const form = document.getElementById("pingForm");
+        const input = document.getElementById("host");
+        const submitBtn = document.getElementById("submitBtn");
+        const resultsSection = document.getElementById("resultsSection");
+        const resultsTitle = document.getElementById("resultsTitle");
+        const htmlView = document.getElementById("htmlView");
+        const resultsTable = document.getElementById("resultsTable");
+        const jsonView = document.getElementById("jsonView");
+        const rawView = document.getElementById("rawView");
+        const errorMsg = document.getElementById("error-msg");
+        const formatTabs = document.querySelectorAll(".format-tab");
+        const copyBtn = document.getElementById("copyBtn");
+        const downloadBtn = document.getElementById("downloadBtn");
+        function escapeHtml(text) {
+          if (text === null || text === undefined) return "";
+          return String(text)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+        }
+        formatTabs.forEach((tab) => {
+          tab.addEventListener("click", function () {
+            currentFormat = this.dataset.format;
+            formatTabs.forEach((t) => t.classList.remove("active"));
+            this.classList.add("active");
+            if (currentFormat === "html") {
+              htmlView.style.display = "block";
+              jsonView.style.display = "none";
+              rawView.style.display = "none";
+              htmlView.style.display = "block";
+              jsonView.style.display = "none";
+              if (window.pingMap) {
+                setTimeout(() => {
+                  window.pingMap.invalidateSize();
+                }, 100);
+              }
+            } else {
+              htmlView.style.display = "none";
+              jsonView.style.display = "block";
+            }
+          });
+        });
+        copyBtn.addEventListener("click", function () {
+          let textToCopy = "";
+          if (currentFormat === "html") textToCopy = resultsTable.innerText;
+          else textToCopy = jsonView.textContent;
+          navigator.clipboard.writeText(textToCopy).then(() => {
+            const originalTitle = this.title;
+            this.title = "Copied!";
+            const originalHTML = this.innerHTML;
+            this.innerHTML =
+              '<svg viewBox="0 0 24 24" fill="none" stroke="green" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>';
+            setTimeout(() => {
+              this.title = originalTitle;
+              this.innerHTML = originalHTML;
+            }, 2000);
+          });
+        });
+        downloadBtn.addEventListener("click", function () {
+          if (!currentData) return;
+          let content = "";
+          let type = "text/plain";
+          if (currentFormat === "html") {
+            content = htmlView.innerHTML;
+            type = "text/html";
+          } else {
+            content = JSON.stringify(currentData, null, 2);
+            type = "application/json";
+          }
+          const blob = new Blob([content], { type: type });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = `global-ping-${input.value.trim()}.${currentFormat}`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+        });
+        function initMap() {
+          const container = document.getElementById("mapContainer");
+          if (!container) return;
+          
+          if (window.pingMap) {
+            window.pingMap.remove();
+            window.pingMap = null;
+          }
+          container.innerHTML = "";
+          
+          const containerId = 'map-instance-' + Date.now();
+          const innerMap = document.createElement('div');
+          innerMap.id = containerId;
+          innerMap.style.height = '450px';
+          innerMap.style.width = '100%';
+          innerMap.style.borderRadius = '8px';
+          container.appendChild(innerMap);
+
+          try {
+            window.pingMap = L.map(containerId).setView([20, 0], 2);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+              attribution: '&copy; OpenStreetMap contributors',
+              maxZoom: 18
+            }).addTo(window.pingMap);
+          } catch (e) {
+            console.error("Leaflet error:", e);
+            container.innerHTML = `<div style="display:flex;align-items:center;justify-content:center;height:100%;background:#f1f5f9;color:#666;padding:20px;text-align:center;">Error: ${e.message}. Please check your internet connection.</div>`;
+          }
+          markers = [];
+        }
+
+        function addMarker(lat, lon, location, status, details) {
+          if (!window.pingMap || !lat || !lon || lat === 0 || lon === 0) return;
+          const isAlive = status === "alive";
+          const color = isAlive ? "#10b981" : "#ef4444";
+          
+          const icon = L.divIcon({
+            className: "custom-marker",
+            html: `<div style="background-color: ${color}; width: 12px; height: 12px; border-radius: 50%; border: 2px solid white; box-shadow: 0 1px 4px rgba(0,0,0,0.3);"></div>`,
+            iconSize: [12, 12],
+            iconAnchor: [6, 6],
+          });
+
+          const marker = L.marker([lat, lon], { icon: icon }).addTo(window.pingMap);
+          const popupContent = `
+            <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; min-width: 160px;">
+              <strong style="display:block;margin-bottom:6px;color:#333;font-size:1rem;">${escapeHtml(location)}</strong>
+              <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;">
+                <span style="width:8px;height:8px;border-radius:50%;background:${color};"></span>
+                <span style="color:${color}; font-weight:600; text-transform:capitalize; font-size:0.85rem;">${isAlive ? "Online" : "Offline"}</span>
+              </div>
+              <div style="color:#666; font-size:0.85rem; border-top:1px solid #eee; padding-top:6px;">
+                Latency: <span style="color:#333;font-weight:600;">${escapeHtml(details.avg_time || "-")} ms</span><br>
+                Loss: <span style="color:#333;font-weight:600;">${escapeHtml(details.packet_loss || "0%")}</span>
+              </div>
+            </div>
+          `;
+          marker.bindPopup(popupContent);
+          markers.push(marker);
+        }
+
+
+        form.addEventListener("submit", async function (e) {
+          e.preventDefault();
+          const host = input.value.trim();
+          if (!host) return;
+          
+          errorMsg.style.display = "none";
+          resultsSection.style.display = "none";
+          resultsTable.innerHTML = "";
+          jsonView.innerHTML = "";
+          
+          const originalButtonText = submitBtn.textContent;
+          submitBtn.innerHTML =
+            '<span class="loading-spinner-btn"></span>Pinging Global Nodes...';
+          submitBtn.disabled = true;
+          
+          try {
+            const resp = await fetch(
+              `backend.php?host=${encodeURIComponent(host)}`,
+            );
+            const data = await resp.json();
+            currentData = data;
+            resultsSection.style.display = "block";
+
+            initMap();
+            
+            const resData = data.data || data.response || data;
+            if (data && (data.error || (data.errors && data.errors.length > 0) || resData.error)) {
+              errorMsg.textContent = data.error || (data.errors && data.errors[0]) || resData.error;
+              errorMsg.style.display = "block";
+              if (typeof resultsSection !== "undefined" && resultsSection) resultsSection.style.display = "none";
+              return;
+            }
+            resultsTitle.textContent = `Global Ping Results for ${host}`;
+            const results = resData.results || [];
+            
+            if (results.length > 0) {
+              const grouped = {};
+              results.forEach((res) => {
+                const region = res.region || "Other";
+                if (!grouped[region]) grouped[region] = [];
+                grouped[region].push(res);
+              });
+              const order = [
+                "Asia", "Oceania", "Africa", "Europe", "North America", "South America", "Local", "Other",
+              ];
+              let tableHtml = `
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Server Location</th>
+                      <th>IP Address</th>
+                      <th>Minimum RTT</th>
+                      <th>Maximum RTT</th>
+                      <th>Average RTT</th>
+                      <th>Packet Loss</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+              `;
+              const sortedRegions = Object.keys(grouped).sort((a, b) => {
+                return order.indexOf(a) - order.indexOf(b);
+              });
+              sortedRegions.forEach((region) => {
+                if (grouped[region].length === 0) return;
+                tableHtml += `<tr><td colspan="6" class="region-header">${escapeHtml(region)}</td></tr>`;
+                grouped[region].forEach((res) => {
+                  const isAlive = res.status === "alive";
+                  const rowStyle = !isAlive ? "color: #dc2626;" : "";
+                  tableHtml += `
+                        <tr style="${rowStyle}">
+                          <td>${escapeHtml(res.location)}</td>
+                          <td>${escapeHtml(res.ip_address)}</td>
+                          <td>${escapeHtml(res.min_time !== "-" ? res.min_time + " ms" : "-")}</td>
+                          <td>${escapeHtml(res.max_time !== "-" ? res.max_time + " ms" : "-")}</td>
+                          <td>${escapeHtml(res.avg_time !== "-" ? res.avg_time + " ms" : "-")}</td>
+                          <td>${escapeHtml(res.packet_loss)}</td>
+                        </tr>
+                      `;
+                  if (res.lat && res.lon) {
+                    addMarker(res.lat, res.lon, res.location, res.status, res);
+                  }
+                });
+              });
+              tableHtml += "</tbody></table>";
+              resultsTable.innerHTML = tableHtml;
+              
+              if (markers.length > 0) {
+                const group = new L.featureGroup(markers);
+                window.pingMap.fitBounds(group.getBounds().pad(0.1));
+              }
+
+              setTimeout(() => {
+                if (window.pingMap) {
+                    window.pingMap.invalidateSize();
+                }
+              }, 100);
+              setTimeout(() => {
+                if (window.pingMap) {
+                    window.pingMap.invalidateSize();
+                }
+              }, 1000);
+            } else {
+              resultsTable.innerHTML =
+                '<div style="padding:16px; color:#666;">No ping results returned from edge nodes.</div>';
+            }
+            jsonView.textContent = JSON.stringify(data, null, 2);
+          } catch (err) {
+            errorMsg.innerHTML = `An error occurred while pinging host:<br>${escapeHtml(err.message)}`;
+            errorMsg.style.display = "block";
+            if (typeof resultsSection !== "undefined" && resultsSection) resultsSection.style.display = "none";
+            console.error(err);
+          } finally {
+            submitBtn.textContent = originalButtonText;
+            submitBtn.disabled = false;
+          }
+        });
+        window.CJ.autoLookup("pingForm", "host");
+      })();
+    </script>
+  </body>
+</html>

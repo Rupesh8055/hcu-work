@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Traceroute Tool</title>
+    <meta name="description" content="Map the complete network path between your location and any destination server. Helps diagnose network latency issues, routing problems, and potential network bottlenecks." />
+    <meta property="og:title" content="Traceroute - Cyber Jagrithi" />
+    <meta property="og:description" content="Map the complete network path between your location and any destination server. Helps diagnose network latency issues, routing problems, and potential network bottlenecks." />
+    <meta property="og:type" content="website" />
+    <link rel="icon" type="image/png" href="../../favicon.png" />
+    <style>
+      body { font-family: "Roboto", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif; background: #f6f8fa; margin: 0; }
+      .container { max-width: 1150px; margin: 30px auto; background: #fff; border-radius: 12px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08); padding: 32px 32px 24px 32px; }
+      h1 { font-size: 2rem; font-weight: 600; margin-bottom: 8px; color: #333; }
+      .desc { color: #555; margin-bottom: 24px; }
+      .search-box { display: flex; gap: 12px; margin-bottom: 24px; }
+      .search-box input { flex: 1; padding: 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 1rem; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03); }
+      .search-box button { background: #7a0000; color: #fff; border: none; border-radius: 6px; padding: 0 28px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: background 0.2s, opacity 0.2s; min-width: 120px; }
+      .search-box button:hover { background: #5a0000; }
+      .search-box button:disabled { background: #7a0000; opacity: 0.7; cursor: not-allowed; }
+      .loading-spinner-btn { display: inline-block; width: 12px; height: 12px; border: 2px solid #fff; border-top: 2px solid transparent; border-radius: 50%; animation: spin 1s linear infinite; margin-right: 8px; vertical-align: middle; }
+      .results-section { display: none; margin-top: 24px; background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; box-shadow: 0 1px 4px rgba(15, 23, 42, 0.08); padding: 12px 16px 20px 16px; }
+      .results-header { display: flex; justify-content: flex-start; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 16px; }
+      .results-title { font-size: 1.2rem; font-weight: 600; color: #333; margin: 0; margin-right: 16px; }
+      .format-tabs { display: flex; background: #f3f4f6; border-radius: 6px; padding: 4px; gap: 4px; margin-right: auto; }
+      .format-tab { background: none; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-size: 0.9rem; font-weight: 500; color: #666; transition: all 0.2s; }
+      .format-tab.active { background: #fff; color: #333; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); }
+      .action-icons { display: flex; gap: 8px; }
+      .action-icon { background: #f8f9fa; border: 1px solid #e2e8f0; padding: 8px; border-radius: 6px; cursor: pointer; color: #4b5563; transition: all 0.2s; display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; }
+      .action-icon:hover { background: #edf2f7; color: #1a202c; border-color: #cbd5e0; }
+      .tab-content { background: #fff; border-radius: 8px; padding: 20px; margin-top: 8px; }
+      .html-view { display: block; }
+      .json-view { display: none; background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 6px; padding: 16px; font-family: "Courier New", monospace; font-size: 0.9rem; white-space: pre-wrap; overflow-x: auto; max-height: 500px; overflow-y: auto; }
+      table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+      th, td { text-align: left; padding: 12px 8px; border-bottom: 1px solid #e5e7eb; }
+      th { background: #f9fafb; color: #374151; font-weight: 600; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.05em; }
+      tr:nth-child(even) { background: #fafbfc; }
+      tr:hover { background: #f1f5f9; }
+      .error-msg { color: #b91c1c; background: #fee2e2; padding: 12px 16px; border-radius: 6px; margin-bottom: 16px; font-weight: 500; border-left: 4px solid #b91c1c; display: none; margin-top: 24px; }
+      @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+      #header-include header h1 a { color: #fff !important; }
+      @media (max-width: 768px) { .container { padding: 20px; } .search-box { flex-direction: column; } .search-box button { width: 100%; } .results-header { flex-direction: column; align-items: flex-start; } .format-tabs { margin-right: 0; width: 100%; margin-bottom: 12px; } .action-icons { width: 100%; justify-content: flex-end; } }
+    </style>
+  </head>
+  <body>
+    <div id="header-include"></div>
+    <div class="container">
+      <h1>Traceroute Tool</h1>
+      <div class="desc">
+        Trace the network path to a destination server. Map each hop's location and diagnose latency issues.
+      </div>
+      <form class="search-box" id="tracerouteForm" autocomplete="off">
+        <input type="text" id="host" placeholder="Enter domain or IP (e.g. google.com)" required />
+        <button type="submit" id="submitBtn">Traceroute</button>
+      </form>
+      <div id="error-msg" class="error-msg"></div>
+      <div class="results-section" id="resultsSection">
+        <div class="results-header">
+          <h3 class="results-title" id="resultsTitle">Results</h3>
+          <div class="format-tabs">
+            <button type="button" class="format-tab active" data-format="html">HTML</button>
+            <button type="button" class="format-tab" data-format="json">JSON</button>
+          </div>
+          <div class="action-icons">
+            <button type="button" class="action-icon" id="copyBtn" title="Copy results">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+            </button>
+            <button type="button" class="action-icon" id="downloadBtn" title="Download results">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+            </button>
+          </div>
+        </div>
+        <div class="tab-content">
+          <div class="html-view" id="htmlView">
+            <div id="mapContainer" style="height: 400px; width: 100%; border-radius: 12px; margin-bottom: 24px; border: 1px solid #e5e7eb; background: #f8fafc;"></div>
+            <div id="tableContainer"></div>
+          </div>
+          <div class="json-view" id="jsonView"></div>
+        </div>
+      </div>
+    </div>
+    <div id="footer-include"></div>
+    <script src="../../assets/js/utils.js"></script>
+    <script>
+      (function () {
+        let currentData = null;
+        let markers = [];
+        let polyline = null;
+        
+        const form = document.getElementById("tracerouteForm");
+        const input = document.getElementById("host");
+        const submitBtn = document.getElementById("submitBtn");
+        const resultsSection = document.getElementById("resultsSection");
+        const resultsTitle = document.getElementById("resultsTitle");
+        const htmlView = document.getElementById("htmlView");
+        const tableContainer = document.getElementById("tableContainer");
+        const jsonView = document.getElementById("jsonView");
+        const errorMsg = document.getElementById("error-msg");
+        const formatTabs = document.querySelectorAll(".format-tab");
+
+        // Standard Utility Setup
+        if (window.CJ && window.CJ.loadHeaderFooter) window.CJ.loadHeaderFooter("../../");
+        if (window.CJ && window.CJ.initFormatTabs) window.CJ.initFormatTabs(formatTabs, htmlView, jsonView);
+        if (window.CJ && window.CJ.initCopyBtn) window.CJ.initCopyBtn(document.getElementById("copyBtn"), htmlView, jsonView);
+        if (window.CJ && window.CJ.initDownloadBtn) window.CJ.initDownloadBtn(document.getElementById("downloadBtn"), htmlView, jsonView, input, "traceroute", () => currentData);
+
+        function escapeHtml(text) {
+          if (!text) return "";
+          return String(text).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+        }
+
+        function updateMap(hops) {
+          if (window.CJ && window.CJ.renderPathMap) {
+            window.CJ.renderPathMap('mapContainer', hops);
+          }
+        }
+
+        form.addEventListener("submit", async function (e) {
+          e.preventDefault();
+          const host = input.value.trim();
+          if (!host) return;
+
+          errorMsg.style.display = "none";
+          resultsSection.style.display = "none";
+          tableContainer.innerHTML = "";
+          
+          const originalText = submitBtn.textContent;
+          submitBtn.innerHTML = '<span class="loading-spinner-btn"></span>Tracing...';
+          submitBtn.disabled = true;
+
+          try {
+            const resp = await fetch(`backend.php?host=${encodeURIComponent(host)}`);
+            const data = await resp.json();
+            currentData = data;
+
+            if (data && data.errors && data.errors.length > 0) {
+              errorMsg.textContent = data.errors[0];
+              errorMsg.style.display = "block";
+              if (typeof resultsSection !== "undefined" && resultsSection) resultsSection.style.display = "none";
+              return;
+            }
+
+            resultsSection.style.display = "block";
+            const response = data.data || {};
+            resultsTitle.textContent = `Traceroute Results for ${response.host || host}`;
+
+            if (response.hops && response.hops.length > 0) {
+              const table = document.createElement("table");
+              table.innerHTML = `<thead><tr><th>Hop</th><th>Host / IP</th><th>ISP / ASN</th><th>Location</th><th>Time</th></tr></thead>`;
+              const tbody = document.createElement("tbody");
+              response.hops.forEach(h => {
+                const tr = document.createElement("tr");
+                const ipDisp = h.ip ? (h.hostname !== h.ip ? `${escapeHtml(h.hostname)} (${escapeHtml(h.ip)})` : escapeHtml(h.ip)) : '<i>Request Timed Out</i>';
+                const asnDisp = h.asn ? `<br><small style="color:#888;">ASN: ${escapeHtml(h.asn)}</small>` : '';
+                tr.innerHTML = `
+                  <td>${h.hop}</td>
+                  <td>${ipDisp}</td>
+                  <td><span style="font-size:0.85rem;color:#666;">${escapeHtml(h.isp || "—")}${asnDisp}</span></td>
+                  <td><span style="font-size:0.85rem;">${escapeHtml(h.location || "—")}</span></td>
+                  <td>${h.time === "*" ? '<span style="color:#999">*</span>' : escapeHtml(String(h.time))}</td>
+                `;
+                tbody.appendChild(tr);
+              });
+              table.appendChild(tbody);
+              tableContainer.appendChild(table);
+
+              if (window.CJ && window.CJ.ensureLeaflet) {
+                window.CJ.ensureLeaflet(() => {
+                  updateMap(response.hops);
+                });
+              }
+            } else {
+              tableContainer.innerHTML = '<div style="padding:20px;color:#666;text-align:center;">No traceroute data received.</div>';
+            }
+            jsonView.textContent = JSON.stringify(data, null, 2);
+          } catch (err) {
+            errorMsg.textContent = "An error occurred during traceroute.";
+            errorMsg.style.display = "block";
+            console.error(err);
+          } finally {
+            submitBtn.textContent = originalText;
+            submitBtn.disabled = false;
+          }
+        });
+
+        window.CJ.autoLookup("tracerouteForm", "host");
+      })();
+    </script>
+  </body>
+</html>
