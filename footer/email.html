@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Email & Communication Tools - Cyber Jagrithi</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        background-color: #f9fafb;
+        color: #2b0000;
+        line-height: 1.6;
+        min-height: 100vh;
+        margin: 0;
+        font-family: "Roboto", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .email-container {
+        max-width: 1150px;
+        margin: 30px auto;
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        padding: 32px 32px 24px 32px;
+      }
+      .email-section {
+        margin-bottom: 40px;
+      }
+      .email-section:last-child {
+        margin-bottom: 0;
+      }
+      .email-section h2 {
+        color: #7a0000;
+        font-size: 1.8rem;
+        font-weight: 600;
+        margin-bottom: 16px;
+      }
+      .email-section p {
+        color: #4b5563;
+        line-height: 1.6;
+        margin-bottom: 16px;
+      }
+      .tools-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 24px;
+        margin: 32px 0;
+      }
+      .tool-card {
+        background: #f8fafc;
+        padding: 24px;
+        border-radius: 8px;
+        border-left: 4px solid #7a0000;
+      }
+      .tool-card h3 {
+        color: #1f2937;
+        font-size: 1.2rem;
+        margin-bottom: 12px;
+        font-weight: 600;
+      }
+      .tool-card p {
+        color: #4b5563;
+        margin-bottom: 16px;
+        font-size: 0.95rem;
+      }
+      .tool-btn {
+        background: #7a0000;
+        color: #fff;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 6px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: background 0.2s;
+        text-decoration: none;
+        display: inline-block;
+        font-size: 0.95rem;
+      }
+      .tool-btn:hover {
+        background: #5a0000;
+      }
+
+      @media (max-width: 768px) {
+        header h1 {
+          font-size: 2rem;
+        }
+        header p {
+          font-size: 1rem;
+        }
+        .tools-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="header-include"></div>
+    <main>
+      <div class="email-container">
+        <div class="email-section">
+          <h2>Email & Communication Tools</h2>
+          <p>
+            Comprehensive email analysis and communication tools for security
+            professionals, network administrators, and cybersecurity
+            researchers. Our tools help you troubleshoot email issues, analyze
+            email infrastructure, and ensure proper email security.
+          </p>
+        </div>
+
+        <div class="email-section">
+          <h2>Available Tools</h2>
+          <div class="tools-grid">
+            <div class="tool-card">
+              <h3>Free Email Test</h3>
+              <p>
+                Test if email addresses are from free email providers. Useful
+                for identifying disposable email addresses and potential spam
+                sources.
+              </p>
+              <a href="../free-email-test/" class="tool-btn">Use Tool</a>
+            </div>
+
+            <div class="tool-card">
+              <h3>Reverse MX Lookup</h3>
+              <p>
+                Find all domains using specific mail exchange servers. Essential
+                for understanding email infrastructure and identifying related
+                domains.
+              </p>
+              <a href="../reverse-mx-lookup/" class="tool-btn">Use Tool</a>
+            </div>
+
+            <div class="tool-card">
+              <h3>Spam Database Lookup</h3>
+              <p>
+                Check if IP addresses or domains are listed on major spam
+                blacklists. Critical for troubleshooting email delivery issues
+                and monitoring reputation.
+              </p>
+              <a href="../spam-database/" class="tool-btn">Use Tool</a>
+            </div>
+
+            <div class="tool-card">
+              <h3>Abuse Contact Finder</h3>
+              <p>
+                Find abuse contact information for IP addresses and domains.
+                Essential for reporting email abuse and security incidents.
+              </p>
+              <a href="../abuse-lookup/" class="tool-btn">Use Tool</a>
+            </div>
+          </div>
+        </div>
+
+        <div class="email-section">
+          <h2>Use Cases</h2>
+          <ul>
+            <li>
+              <strong>Email Security:</strong> Identify spam sources and
+              malicious email addresses
+            </li>
+            <li>
+              <strong>Email Infrastructure:</strong> Analyze mail server
+              configurations and relationships
+            </li>
+            <li>
+              <strong>Email Deliverability:</strong> Troubleshoot email delivery
+              issues and reputation problems
+            </li>
+            <li>
+              <strong>Incident Response:</strong> Report email abuse and
+              security incidents
+            </li>
+            <li>
+              <strong>Compliance:</strong> Ensure email systems meet security
+              and regulatory requirements
+            </li>
+          </ul>
+        </div>
+      </div>
+    </main>
+    <div id="footer-include"></div>
+    <script>
+      ["header", "footer"].forEach((id) => {
+        fetch(`../${id}.html`)
+          .then((r) => r.text())
+          .then((html) => {
+            document.getElementById(`${id}-include`).innerHTML = html;
+          });
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MAC Address Lookup</title>
+    <style>
+      body {
+        font-family: Segoe UI, Arial, sans-serif;
+        background: #f6f8fa;
+        margin: 0;
+      }
+      .container {
+        max-width: 1150px;
+        margin: 30px auto;
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        padding: 32px 32px 24px 32px;
+      }
+      h1 {
+        font-size: 2rem;
+        font-weight: 600;
+        margin-bottom: 8px;
+      }
+      .desc {
+        color: #555;
+        margin-bottom: 24px;
+      }
+      .search-box {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 24px;
+      }
+      .search-box input {
+        flex: 1;
+        padding: 12px;
+        border: 1px solid #d1d5db;
+        border-radius: 6px;
+        font-size: 1rem;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+      }
+      .search-box button {
+        background: #7a0000;
+        color: #fff;
+        border: none;
+        border-radius: 6px;
+        padding: 0 28px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+        transition: background 0.2s;
+      }
+      .search-box button:hover {
+        background: #5a0000;
+      }
+      .tabs {
+        display: flex;
+        gap: 24px;
+        border-bottom: 1px solid #e5e7eb;
+        margin-bottom: 0;
+      }
+      .tab {
+        padding: 12px 0;
+        font-weight: 500;
+        color: #222;
+        cursor: pointer;
+        border-bottom: 2px solid transparent;
+        text-decoration: none;
+      }
+      .tab.active {
+        border-bottom: 2px solid #7a0000;
+        color: #7a0000;
+      }
+      .results-header {
+        font-size: 1.2rem;
+        font-weight: 500;
+        margin: 24px 0 8px 0;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 8px;
+      }
+      th,
+      td {
+        text-align: left;
+        padding: 12px 8px;
+      }
+      th {
+        background: #f3f4f6;
+        color: #444;
+        font-weight: 600;
+        border-bottom: 1px solid #e5e7eb;
+      }
+      tr:nth-child(even) {
+        background: #fafbfc;
+      }
+      tr:hover {
+        background: #f1f5f9;
+      }
+      .info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 16px;
+        margin-bottom: 24px;
+      }
+      .info-card {
+        background: #f8fafc;
+        padding: 16px;
+        border-radius: 8px;
+      }
+      .info-card h3 {
+        color: #1f2937;
+        font-size: 0.9rem;
+        margin: 0 0 8px 0;
+      }
+      .info-card p {
+        color: #4b5563;
+        margin: 0;
+        font-size: 1.1rem;
+        font-weight: 500;
+      }
+      .details-table .label {
+        color: #6b7280;
+        font-size: 0.9rem;
+      }
+      .details-table .value {
+        font-weight: 500;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="header-include"></div>
+    <div id="app">
+      <div class="container">
+        <h1>MAC Address Lookup</h1>
+        <div class="desc">
+          Look up manufacturer and device information from MAC addresses. Useful
+          for network administration, security auditing, and device
+          identification.
+        </div>
+        <form class="search-box" autocomplete="off">
+          <input
+            type="text"
+            name="mac"
+            placeholder="Enter MAC address (e.g. 00:1A:2B:3C:4D:5E)"
+            required
+          />
+          <button type="submit">Lookup</button>
+        </form>
+        <div class="tabs" style="display: none">
+          <a href="#" class="tab active">HTML</a>
+          <a href="#" class="tab">JSON</a>
+        </div>
+        <div class="results" style="display: none"></div>
+      </div>
+    </div>
+    <div id="footer-include"></div>
+    <script>
+      (function () {
+        let currentTab = "html";
+        let lastQuery = "";
+        let lastResults = {};
+        const app = document.getElementById("app");
+        const container = app.querySelector(".container");
+        const form = container.querySelector(".search-box");
+        const input = form.querySelector("input");
+        const tabs = container.querySelector(".tabs");
+        const htmlTab = tabs.querySelectorAll(".tab")[0];
+        const jsonTab = tabs.querySelectorAll(".tab")[1];
+        const resultsDiv = container.querySelector(".results");
+        function switchTab(tab) {
+          currentTab = tab;
+          htmlTab.className = "tab" + (tab === "html" ? " active" : "");
+          htmlTab.style.borderBottom =
+            tab === "html" ? "2px solid #7a0000" : "2px solid transparent";
+          htmlTab.style.color = tab === "html" ? "#7a0000" : "#222";
+          jsonTab.className = "tab" + (tab === "json" ? " active" : "");
+          jsonTab.style.borderBottom =
+            tab === "json" ? "2px solid #7a0000" : "2px solid transparent";
+          jsonTab.style.color = tab === "json" ? "#7a0000" : "#222";
+          renderResults(lastQuery, lastResults);
+        }
+        htmlTab.addEventListener("click", function (e) {
+          e.preventDefault();
+          switchTab("html");
+        });
+        jsonTab.addEventListener("click", function (e) {
+          e.preventDefault();
+          switchTab("json");
+        });
+        form.addEventListener("submit", async function (e) {
+          e.preventDefault();
+          const query = input.value.trim();
+          if (!query) return;
+          const resp = await fetch(
+            `/mac-lookup/backend.php?mac=${encodeURIComponent(query)}`
+          );
+          const results = await resp.json();
+          lastQuery = query;
+          lastResults = results;
+          tabs.style.display = "flex";
+          resultsDiv.style.display = "block";
+          renderResults(query, results);
+        });
+        function renderResults(query, results) {
+          resultsDiv.innerHTML = "";
+          if (!query) return;
+          const header = document.createElement("div");
+          header.className = "results-header";
+          header.innerHTML = `MAC Address Information for <b class="mac-address">${escapeHtml(
+            query
+          )}</b>`;
+          resultsDiv.appendChild(header);
+          if (currentTab === "json") {
+            const json = {
+              query: { tool: "mac-lookup", mac: query },
+              response: results,
+            };
+            const pre = document.createElement("pre");
+            pre.textContent = JSON.stringify(json, null, 2);
+            pre.style.background = "#f3f4f6";
+            pre.style.padding = "16px";
+            pre.style.borderRadius = "8px";
+            pre.style.overflow = "auto";
+            pre.style.maxHeight = "420px";
+            pre.style.fontSize = "1rem";
+            pre.style.boxShadow = "none";
+            pre.style.margin = "0";
+            resultsDiv.appendChild(pre);
+          } else {
+            if (results.summary && typeof results.summary === "object") {
+              const infoGrid = document.createElement("div");
+              infoGrid.className = "info-grid";
+              Object.entries(results.summary).forEach(([key, value]) => {
+                const infoCard = document.createElement("div");
+                infoCard.className = "info-card";
+                const h3 = document.createElement("h3");
+                h3.textContent = key;
+                infoCard.appendChild(h3);
+                const p = document.createElement("p");
+                p.textContent = value;
+                infoCard.appendChild(p);
+                infoGrid.appendChild(infoCard);
+              });
+              resultsDiv.appendChild(infoGrid);
+            }
+            const table = document.createElement("table");
+            table.className = "details-table";
+            table.innerHTML =
+              "<thead><tr><th>Property</th><th>Value</th></tr></thead>";
+            const tbody = document.createElement("tbody");
+            if (results.details && typeof results.details === "object") {
+              Object.entries(results.details).forEach(([key, value]) => {
+                const tr = document.createElement("tr");
+                const tdKey = document.createElement("td");
+                tdKey.className = "label";
+                tdKey.textContent = key;
+                tr.appendChild(tdKey);
+                const tdValue = document.createElement("td");
+                tdValue.className = "value";
+                tdValue.textContent = value;
+                tr.appendChild(tdValue);
+                tbody.appendChild(tr);
+              });
+            }
+            table.appendChild(tbody);
+            resultsDiv.appendChild(table);
+          }
+        }
+        function escapeHtml(str) {
+          return str.replace(/[&<>"']/g, function (tag) {
+            const charsToReplace = {
+              "&": "&amp;",
+              "<": "&lt;",
+              ">": "&gt;",
+              '"': "&quot;",
+              "'": "&#39;",
+            };
+            return charsToReplace[tag] || tag;
+          });
+        }
+        renderResults("", {});
+      })();
+
+      ["header", "footer"].forEach((id) => {
+        fetch(`../${id}.html`)
+          .then((r) => r.text())
+          .then((html) => {
+            document.getElementById(`${id}-include`).innerHTML = html;
+          });
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Is My Site Down?</title>
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <style>
+      body {
+        font-family: Segoe UI, Arial, sans-serif;
+        background: #f6f8fa;
+        margin: 0;
+      }
+      .container {
+        max-width: 1150px;
+        margin: 30px auto;
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        padding: 32px 32px 24px 32px;
+      }
+      h1 {
+        font-size: 2rem;
+        font-weight: 600;
+        margin-bottom: 8px;
+      }
+      .desc {
+        color: #555;
+        margin-bottom: 24px;
+      }
+      .search-box {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 24px;
+      }
+      .search-box input {
+        flex: 1;
+        padding: 12px;
+        border: 1px solid #d1d5db;
+        border-radius: 6px;
+        font-size: 1rem;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+      }
+      .search-box button {
+        background: #7a0000;
+        color: #fff;
+        border: none;
+        border-radius: 6px;
+        padding: 0 28px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+        transition: background 0.2s;
+      }
+      .search-box button:hover {
+        background: #5a0000;
+      }
+      .tabs {
+        display: flex;
+        gap: 0;
+        border-bottom: 1px solid #e5e7eb;
+        margin-bottom: 0;
+        padding: 8px 0;
+      }
+      .tab {
+        padding: 8px 0;
+        font-weight: 500;
+        color: #222;
+        cursor: pointer;
+        border-bottom: 2px solid transparent;
+        text-decoration: none;
+        font-size: 1rem;
+      }
+      .tab:hover {
+        color: #374151;
+      }
+      .tab.active {
+        border-bottom: 2px solid #7a0000;
+        color: #7a0000;
+      }
+      .results-header {
+        font-size: 1.2rem;
+        font-weight: 500;
+        margin: 8px 0 8px 0;
+      }
+      .results-count {
+        color: #666;
+        font-size: 1rem;
+        margin-bottom: 16px;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 8px;
+      }
+      th,
+      td {
+        text-align: left;
+        padding: 12px 8px;
+      }
+      th {
+        background: #f3f4f6;
+        color: #444;
+        font-weight: 600;
+        border-bottom: 1px solid #e5e7eb;
+      }
+      tr:nth-child(even) {
+        background: #fafbfc;
+      }
+      tr:hover {
+        background: #f1f5f9;
+      }
+      .domain {
+        font-weight: 500;
+      }
+      .error-msg {
+        color: #b91c1c;
+        background: #fee2e2;
+        padding: 12px 16px;
+        border-radius: 6px;
+        margin-bottom: 16px;
+        font-weight: 500;
+      }
+      .tab-btns {
+        position: absolute;
+        top: 24px;
+        right: 32px;
+        display: flex;
+        gap: 12px;
+      }
+      .tab-btns span {
+        opacity: 0.4;
+        cursor: not-allowed;
+        display: inline-block;
+        font-size: 20px;
+      }
+      pre {
+        background: #f3f4f6;
+        padding: 16px;
+        border-radius: 8px;
+        overflow: auto;
+        max-height: 320px;
+        font-size: 1rem;
+        box-shadow: none;
+        margin: 0;
+      }
+      .results {
+        margin-top: 24px;
+      }
+      .results-content {
+        margin-top: 8px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="header-include"></div>
+    <div id="app"></div>
+    <div id="footer-include"></div>
+    <script>
+      function createEl(tag, options = {}) {
+        const el = document.createElement(tag);
+        if (options.class) el.className = options.class;
+        if (options.attrs)
+          for (const [k, v] of Object.entries(options.attrs))
+            el.setAttribute(k, v);
+        if (options.html !== undefined) el.innerHTML = options.html;
+        return el;
+      }
+      function escapeHtml(str) {
+        return str.replace(
+          /[&<>"']/g,
+          (c) =>
+            ({
+              "&": "&amp;",
+              "<": "&lt;",
+              ">": "&gt;",
+              '"': "&quot;",
+              "'": "&#39;",
+            }[c])
+        );
+      }
+      async function checkSiteStatus(url) {
+        const apiUrl = `backend.php?url=${encodeURIComponent(url)}`;
+        try {
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 15000);
+
+          const resp = await fetch(apiUrl, { signal: controller.signal });
+          clearTimeout(timeoutId);
+
+          const data = await resp.json();
+
+          if (data && data.response) {
+            return data.response;
+          } else {
+            return { error: "Invalid response from server" };
+          }
+        } catch (e) {
+          if (e.name === "AbortError") {
+            return { error: "Request timed out. Please try again." };
+          } else {
+            return { error: "Failed to connect to server" };
+          }
+        }
+      }
+      let lastResult = null,
+        lastUrl = "",
+        currentTab = "html";
+      let resultsContent = null,
+        tabsDiv = null,
+        resultsDiv = null;
+
+      function renderSiteDownChecker() {
+        document.title = "Is My Site Down?";
+        const app = document.getElementById("app");
+        app.innerHTML = "";
+        const container = createEl("div", { class: "container" });
+        container.appendChild(createEl("h1", { html: "Is My Site Down?" }));
+        container.appendChild(
+          createEl("div", {
+            class: "desc",
+            html: "Check if your website is down for everyone or just you. This tool performs comprehensive connectivity tests including DNS resolution, ping, port connectivity, and HTTP status verification.",
+          })
+        );
+
+        const form = createEl("form", { class: "search-box" });
+        const input = createEl("input");
+        input.type = "text";
+        input.name = "url";
+        input.placeholder = "Enter website URL (e.g. https://example.com)";
+        input.required = true;
+        form.appendChild(input);
+        const button = createEl("button", { html: "Check" });
+        button.type = "submit";
+        form.appendChild(button);
+        container.appendChild(form);
+
+        const resultsArea = createEl("div");
+        resultsDiv = createEl("div", { class: "results" });
+        resultsDiv.style.display = "none";
+        resultsDiv.style.background = "#fff";
+        resultsDiv.style.borderRadius = "12px";
+        resultsDiv.style.boxShadow = "0 2px 8px rgba(0, 0, 0, 0.08)";
+        resultsDiv.style.padding = "16px 32px 16px 32px";
+        resultsDiv.style.marginBottom = "32px";
+        resultsDiv.style.position = "relative";
+
+        tabsDiv = createEl("div", { class: "tabs" });
+        tabsDiv.style.display = "none";
+        const htmlTab = document.createElement("a");
+        htmlTab.className = "tab active";
+        htmlTab.textContent = "HTML";
+        htmlTab.style.marginRight = "24px";
+        htmlTab.href = "#";
+
+        const jsonTab = document.createElement("a");
+        jsonTab.className = "tab";
+        jsonTab.textContent = "JSON";
+        jsonTab.href = "#";
+        tabsDiv.appendChild(htmlTab);
+        tabsDiv.appendChild(jsonTab);
+        resultsDiv.appendChild(tabsDiv);
+
+        resultsContent = createEl("div", { class: "results-content" });
+        resultsDiv.appendChild(resultsContent);
+        resultsArea.appendChild(resultsDiv);
+        container.appendChild(resultsArea);
+
+        htmlTab.addEventListener("click", function (e) {
+          e.preventDefault();
+          currentTab = "html";
+          htmlTab.classList.add("active");
+          jsonTab.classList.remove("active");
+          if (lastResult) renderResults(lastResult);
+        });
+
+        jsonTab.addEventListener("click", function (e) {
+          e.preventDefault();
+          currentTab = "json";
+          jsonTab.classList.add("active");
+          htmlTab.classList.remove("active");
+          if (lastResult) renderResults(lastResult);
+        });
+
+        form.onsubmit = async (e) => {
+          e.preventDefault();
+          const url = input.value.trim();
+          if (!url) return;
+          lastUrl = url;
+          currentTab = "html";
+          htmlTab.classList.add("active");
+          jsonTab.classList.remove("active");
+
+          const originalButtonText = button.textContent;
+          button.textContent = "Loading...";
+          button.disabled = true;
+
+          await fetchResults(url);
+
+          button.textContent = originalButtonText;
+          button.disabled = false;
+        };
+
+        const hashParams = new URLSearchParams(window.location.hash.slice(1));
+        if (hashParams.get("url")) {
+          input.value = hashParams.get("url");
+          lastUrl = hashParams.get("url");
+          currentTab = hashParams.get("tab") || "html";
+          if (currentTab === "json") {
+            jsonTab.classList.add("active");
+            htmlTab.classList.remove("active");
+          }
+          fetchResults(input.value);
+        }
+        app.appendChild(container);
+      }
+      async function fetchResults(url) {
+        resultsDiv.style.display = "block";
+
+        try {
+          const result = await checkSiteStatus(url);
+          lastResult = result;
+          renderResults(result);
+          tabsDiv.style.display = "block";
+        } catch (e) {
+          resultsContent.innerHTML =
+            '<div class="error-msg">Error fetching results.</div>';
+          tabsDiv.style.display = "none";
+        }
+      }
+
+      function renderResults(result) {
+        resultsContent.innerHTML = "";
+
+        if (result && result.error) {
+          resultsContent.innerHTML = `<div class="error-msg">${escapeHtml(
+            result.error
+          )}</div>`;
+          tabsDiv.style.display = "none";
+          return;
+        }
+        if (!result || !result.results) {
+          resultsContent.innerHTML =
+            '<div class="error-msg">No results available.</div>';
+          tabsDiv.style.display = "none";
+          return;
+        }
+        const header = createEl("div", { class: "results-header" });
+        header.textContent = `Site status for '${lastUrl}'`;
+        resultsContent.appendChild(header);
+
+        const statusSummary = createEl("div");
+        statusSummary.style.marginBottom = "16px";
+        statusSummary.style.padding = "12px 16px";
+        statusSummary.style.borderRadius = "6px";
+        statusSummary.style.fontWeight = "600";
+        statusSummary.style.fontSize = "1rem";
+
+        if (result.overall_status === "ok") {
+          statusSummary.style.background = "#d1fae5";
+          statusSummary.style.color = "#065f46";
+          statusSummary.style.border = "1px solid #a7f3d0";
+          statusSummary.innerHTML =
+            "✅ <strong>Website is working properly</strong>";
+        } else {
+          statusSummary.style.background = "#fee2e2";
+          statusSummary.style.color = "#991b1b";
+          statusSummary.style.border = "1px solid #fca5a5";
+          statusSummary.innerHTML =
+            "❌ <strong>Website is not working</strong>";
+        }
+        resultsContent.appendChild(statusSummary);
+
+        const summary = createEl("div", { class: "results-count" });
+        summary.innerHTML = result.summary;
+        resultsContent.appendChild(summary);
+
+        if (currentTab === "json") {
+          const json = {
+            query: { tool: "site-down-checker", url: lastUrl },
+            response: result,
+          };
+          const pre = createEl("pre");
+          pre.style.background = "#f3f4f6";
+          pre.style.padding = "16px 16px 56px 16px";
+          pre.style.borderRadius = "8px";
+          pre.style.overflow = "auto";
+          pre.style.maxHeight = "320px";
+          pre.style.fontSize = "1rem";
+          pre.style.boxShadow = "none";
+          pre.style.margin = "0";
+          pre.textContent = JSON.stringify(json, null, 2);
+          resultsContent.appendChild(pre);
+        } else {
+          const tableContainer = createEl("div");
+          tableContainer.style.background = "#fff";
+          tableContainer.style.borderRadius = "12px";
+          tableContainer.style.border = "1px solid #e5e7eb";
+          tableContainer.style.overflow = "hidden";
+          tableContainer.style.boxShadow =
+            "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)";
+          tableContainer.style.marginBottom = "24px";
+
+          const table = createEl("table");
+          table.style.width = "100%";
+          table.style.borderCollapse = "collapse";
+          table.style.tableLayout = "fixed";
+
+          const thead = createEl("thead");
+          const headerRow = createEl("tr");
+          headerRow.style.background =
+            "linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)";
+          headerRow.style.borderBottom = "2px solid #e2e8f0";
+
+          const testCaseHeader = createEl("th");
+          testCaseHeader.textContent = "TEST CASE";
+          testCaseHeader.style.fontWeight = "700";
+          testCaseHeader.style.fontSize = "0.875rem";
+          testCaseHeader.style.color = "#1f2937";
+          testCaseHeader.style.letterSpacing = "0.05em";
+          testCaseHeader.style.padding = "20px 24px";
+          testCaseHeader.style.textTransform = "uppercase";
+          testCaseHeader.style.textAlign = "left";
+          testCaseHeader.style.width = "30%";
+          testCaseHeader.style.borderRight = "2px solid #e2e8f0";
+
+          const resultHeader = createEl("th");
+          resultHeader.textContent = "RESULT";
+          resultHeader.style.fontWeight = "700";
+          resultHeader.style.fontSize = "0.875rem";
+          resultHeader.style.color = "#1f2937";
+          resultHeader.style.letterSpacing = "0.05em";
+          resultHeader.style.padding = "20px 24px";
+          resultHeader.style.textTransform = "uppercase";
+          resultHeader.style.textAlign = "left";
+          resultHeader.style.width = "60%";
+          resultHeader.style.borderRight = "2px solid #e2e8f0";
+
+          const statusHeader = createEl("th");
+          statusHeader.textContent = "STATUS";
+          statusHeader.style.fontWeight = "700";
+          statusHeader.style.fontSize = "0.875rem";
+          statusHeader.style.color = "#1f2937";
+          statusHeader.style.letterSpacing = "0.05em";
+          statusHeader.style.padding = "20px 24px";
+          statusHeader.style.textTransform = "uppercase";
+          statusHeader.style.textAlign = "center";
+          statusHeader.style.width = "10%";
+
+          headerRow.appendChild(testCaseHeader);
+          headerRow.appendChild(resultHeader);
+          headerRow.appendChild(statusHeader);
+          thead.appendChild(headerRow);
+          table.appendChild(thead);
+
+          const tbody = createEl("tbody");
+
+          result.results.forEach((r, index) => {
+            const tr = createEl("tr");
+            tr.style.borderBottom = "1px solid #f1f5f9";
+            tr.style.transition = "all 0.2s ease";
+
+            if (index % 2 === 0) {
+              tr.style.background = "#fafbfc";
+            } else {
+              tr.style.background = "#fff";
+            }
+            tr.addEventListener("mouseenter", function () {
+              this.style.background = "#f8fafc";
+              this.style.transform = "translateY(-1px)";
+              this.style.boxShadow = "0 2px 4px rgba(0,0,0,0.05)";
+            });
+
+            tr.addEventListener("mouseleave", function () {
+              this.style.background = index % 2 === 0 ? "#fafbfc" : "#fff";
+              this.style.transform = "translateY(0)";
+              this.style.boxShadow = "none";
+            });
+
+            const testTd = createEl("td");
+            testTd.className = "domain";
+            testTd.textContent = r.test;
+            testTd.style.fontWeight = "600";
+            testTd.style.color = "#1f2937";
+            testTd.style.padding = "20px 24px";
+            testTd.style.fontSize = "0.95rem";
+            testTd.style.borderRight = "2px solid #e2e8f0";
+            testTd.style.position = "relative";
+            testTd.style.width = "30%";
+
+            const resultTd = createEl("td");
+            resultTd.textContent = r.details;
+            resultTd.style.color = "#4b5563";
+            resultTd.style.fontSize = "0.95rem";
+            resultTd.style.padding = "20px 24px";
+            resultTd.style.lineHeight = "1.6";
+            resultTd.style.fontFamily = "inherit";
+            resultTd.style.borderRight = "2px solid #e2e8f0";
+            resultTd.style.position = "relative";
+            resultTd.style.width = "60%";
+
+            const statusTd = createEl("td");
+            statusTd.style.textAlign = "center";
+            statusTd.style.padding = "20px 24px";
+            statusTd.style.verticalAlign = "middle";
+            statusTd.style.position = "relative";
+            statusTd.style.width = "10%";
+            statusTd.innerHTML =
+              r.status === "ok"
+                ? "<span style='color:#7a0000;font-size:1.6em;filter:drop-shadow(0 1px 2px rgba(0,0,0,0.1));'>✓</span>"
+                : r.status === "info"
+                ? "<span style='color:#2563eb;font-size:1.6em;filter:drop-shadow(0 1px 2px rgba(0,0,0,0.1));'>ℹ️</span>"
+                : "<span style='color:#dc2626;font-size:1.6em;filter:drop-shadow(0 1px 2px rgba(0,0,0,0.1));'>✗</span>";
+
+            tr.appendChild(testTd);
+            tr.appendChild(resultTd);
+            tr.appendChild(statusTd);
+            tbody.appendChild(tr);
+          });
+
+          table.appendChild(tbody);
+          tableContainer.appendChild(table);
+          resultsContent.appendChild(tableContainer);
+
+          const spacing = createEl("div");
+          spacing.style.marginTop = "24px";
+          resultsContent.appendChild(spacing);
+
+          if (
+            result.troubleshooting_steps &&
+            result.troubleshooting_steps.length > 0
+          ) {
+            const troubleshootingDiv = createEl("div", {
+              class: "troubleshooting",
+            });
+            troubleshootingDiv.style.padding = "20px";
+            troubleshootingDiv.style.background = "#f8f9fa";
+            troubleshootingDiv.style.borderRadius = "8px";
+            troubleshootingDiv.style.borderLeft = "4px solid #7a0000";
+            troubleshootingDiv.style.boxShadow = "0 1px 3px rgba(0,0,0,0.1)";
+
+            const troubleshootingTitle = createEl("h4");
+            troubleshootingTitle.textContent = "Troubleshooting Steps:";
+            troubleshootingTitle.style.margin = "0 0 16px 0";
+            troubleshootingTitle.style.color = "#374151";
+            troubleshootingTitle.style.fontSize = "1.1rem";
+            troubleshootingTitle.style.fontWeight = "600";
+            troubleshootingDiv.appendChild(troubleshootingTitle);
+
+            const troubleshootingList = createEl("ul");
+            troubleshootingList.style.margin = "0";
+            troubleshootingList.style.paddingLeft = "20px";
+            troubleshootingList.style.color = "#6b7280";
+            troubleshootingList.style.lineHeight = "1.6";
+
+            result.troubleshooting_steps.forEach((step) => {
+              const li = createEl("li");
+              li.style.marginBottom = "10px";
+              li.style.fontSize = "0.95rem";
+              li.innerHTML = step;
+              troubleshootingList.appendChild(li);
+            });
+
+            troubleshootingDiv.appendChild(troubleshootingList);
+            resultsContent.appendChild(troubleshootingDiv);
+          }
+        }
+      }
+      renderSiteDownChecker();
+
+      ["header", "footer"].forEach((id) => {
+        fetch(`../${id}.html`)
+          .then((r) => r.text())
+          .then((html) => {
+            document.getElementById(`${id}-include`).innerHTML = html;
+          });
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>
+      Cyber Jagrithi - Comprehensive Security & Network Analysis Tools
+    </title>
+    <meta
+      name="description"
+      content="Cyber Jagrithi offers a comprehensive suite of security and network analysis tools including IP lookups, DNS analysis, firewall tests, and security assessments for cybersecurity professionals."
+    />
+    <meta
+      name="keywords"
+      content="cybersecurity tools, network analysis, IP lookup, DNS report, whois lookup, security assessment, cyber tools, web security"
+    />
+    <meta name="author" content="Cyber Jagrithi" />
+    <meta
+      property="og:title"
+      content="Cyber Jagrithi - Security & Network Analysis Tools"
+    />
+    <meta
+      property="og:description"
+      content="Access professional-grade cybersecurity and network analysis tools for comprehensive security assessments and threat intelligence."
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://cyberjagrithi.com" />
+    <link rel="canonical" href="https://cyberjagrithi.com" />
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap");
+      :root {
+        --primary-color: #800000;
+        --secondary-color: #5c0000;
+        --accent-color: #a52a2a;
+        --light-color: #f3f4f6;
+        --dark-color: #2b0000;
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: "Roboto", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      }
+      body {
+        background-color: #f9fafb;
+        color: var(--dark-color);
+        line-height: 1.6;
+      }
+      .container {
+        max-width: 1200px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+      }
+      .tools-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 1.5rem;
+        margin-top: 2rem;
+      }
+      .tool-card {
+        background: #fff;
+        border-radius: 8px;
+        padding: 1.5rem;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        transition: all 0.3s;
+        border-left: 4px solid var(--accent-color);
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+      }
+      .tool-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+        border-left: 4px solid var(--secondary-color);
+      }
+      .tool-card h3 {
+        color: var(--primary-color);
+        margin-bottom: 0.5rem;
+      }
+      .tool-card p {
+        color: #6b7280;
+        font-size: 0.9rem;
+        margin-bottom: 1rem;
+        flex-grow: 1;
+      }
+      .tool-btn {
+        background: var(--primary-color);
+        color: #fff;
+        border: none;
+        padding: 0.6rem 1rem;
+        border-radius: 6px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: background 0.2s;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+        margin-top: auto;
+      }
+      .tool-btn:hover {
+        background: var(--secondary-color);
+      }
+      .search-bar {
+        margin: 2rem 0;
+        width: 100%;
+        max-width: 600px;
+        margin-left: auto;
+        margin-right: auto;
+      }
+      .search-bar input {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+        font-size: 1rem;
+        outline: none;
+      }
+      .search-bar input:focus {
+        border-color: var(--accent-color);
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+      }
+      h2 {
+        color: #800000;
+        margin: 2rem 0 1rem;
+        font-size: 1.8rem;
+      }
+      .section-description {
+        color: #4b5563;
+        margin-bottom: 2rem;
+        max-width: 800px;
+        line-height: 1.6;
+      }
+
+      @media (max-width: 768px) {
+        .tools-grid {
+          grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="header-include"></div>
+    <div class="container">
+      <div class="search-bar">
+        <input
+          type="text"
+          id="search-input"
+          placeholder="Search for tools..."
+          aria-label="Search for security tools"
+        />
+      </div>
+      <section>
+        <h2 id="tools-heading">Cybersecurity & Network Analysis Tools</h2>
+        <p class="section-description">
+          Explore our comprehensive collection of professional-grade tools
+          designed for security assessments, network analysis, and digital
+          investigations.
+        </p>
+        <div
+          class="tools-grid"
+          id="tools-container"
+          aria-labelledby="tools-heading"
+        ></div>
+      </section>
+    </div>
+    <div id="footer-include"></div>
+    <script>
+      const tools = [
+        {
+          name: "Reverse IP Lookup",
+          description:
+            "Discover all websites hosted on a single IP address. Useful for identifying related websites, investigating web hosting infrastructure, and uncovering potentially malicious domain clusters.",
+          url: "reverse-ip-lookup/index.html",
+        },
+        {
+          name: "Reverse Whois Lookup",
+          description:
+            "Identify all domains registered by a specific individual or organization. Essential for brand protection, competitive analysis, and investigating potential phishing campaigns targeting your organization.",
+          url: "reverse-whois-lookup/index.html",
+        },
+        {
+          name: "IP History",
+          description:
+            "Track the historical hosting changes of a domain over time. Helps identify suspicious hosting migrations, investigate compromised websites, and analyze the digital footprint of an organization.",
+          url: "ip-history/index.html",
+        },
+        {
+          name: "DNS Report",
+          description:
+            "Generate a comprehensive analysis of all DNS records for a domain with security recommendations. Identifies misconfiguration issues, security vulnerabilities, and compliance problems in DNS settings.",
+          url: "dns-report/index.html",
+        },
+        {
+          name: "Reverse MX Lookup",
+          description:
+            "Find all domains sharing the same mail server. Useful for identifying related organizations, investigating email infrastructure, and discovering potential email spoofing vulnerabilities.",
+          url: "reverse-mx-lookup/index.html",
+        },
+        {
+          name: "Reverse NS Lookup",
+          description:
+            "Discover all domains using the same nameserver. Helps map related digital assets, investigate DNS infrastructure, and identify potential DNS-based attack vectors.",
+          url: "reverse-ns-lookup/index.html",
+        },
+        {
+          name: "Find all sites that use a given nameserver",
+          description:
+            "Comprehensive tool to list all websites using a specific nameserver. Valuable for infrastructure mapping, competitive analysis, and identifying potential security issues across DNS providers.",
+          url: "nameserver-sites/index.html",
+        },
+        {
+          name: "IP Location Finder",
+          description:
+            "Accurately determine the geographic location of any IP address with detailed regional information. Essential for compliance verification, fraud investigation, and geotargeting configuration.",
+          url: "ip-location/index.html",
+        },
+        {
+          name: "Chinese Firewall Test",
+          description:
+            "Verify if your website is accessible in China by testing against the Great Firewall. Critical for businesses operating in or targeting the Chinese market to ensure service availability.",
+          url: "chinese-firewall-test/index.html",
+        },
+        {
+          name: "DNS Propagation Checker",
+          description:
+            "Monitor the global propagation status of DNS changes across multiple locations worldwide. Essential when migrating services, changing DNS providers, or troubleshooting DNS-related issues.",
+          url: "dns-propagation/index.html",
+        },
+        {
+          name: "Is My Site Down",
+          description:
+            "Verify if your website is experiencing downtime or accessibility issues from multiple global locations. Helps differentiate between local connectivity problems and actual service outages.",
+          url: "site-down-checker/index.html",
+        },
+        {
+          name: "Iran Firewall Test",
+          description:
+            "Test if your website is blocked by Iran's national firewall. Important for organizations with users in Iran to verify service accessibility and compliance with regional regulations.",
+          url: "iran-firewall-test/index.html",
+        },
+        {
+          name: "WHOIS Lookup",
+          description:
+            "Access comprehensive domain registration details including owner information, registration dates, and nameservers. Essential for domain acquisition, legal investigations, and brand protection.",
+          url: "whois-lookup/index.html",
+        },
+        {
+          name: "Get HTTP Headers",
+          description:
+            "Analyze HTTP response headers from any website to evaluate security configurations, caching policies, and server information. Helps identify security misconfigurations and optimization opportunities.",
+          url: "http-headers/index.html",
+        },
+        {
+          name: "DNS Record Lookup",
+          description:
+            "Query and analyze all DNS records for any domain with detailed explanation of each record type. Vital for troubleshooting email delivery, website accessibility, and domain verification issues.",
+          url: "dns-lookup/index.html",
+        },
+        {
+          name: "Port Scanner",
+          description:
+            "Identify open ports and services running on any IP address or domain. Essential for security assessments, vulnerability identification, and network infrastructure auditing.",
+          url: "port-scanner/index.html",
+        },
+        {
+          name: "Traceroute",
+          description:
+            "Map the complete network path between your location and any destination server. Helps diagnose network latency issues, routing problems, and potential network bottlenecks.",
+          url: "traceroute/index.html",
+        },
+        {
+          name: "Spam Database Lookup",
+          description:
+            "Check if an IP address or domain is listed in major spam blacklists and reputation databases. Critical for troubleshooting email delivery issues and monitoring organizational IP reputation.",
+          url: "spam-database/index.html",
+        },
+        {
+          name: "Reverse DNS Lookup",
+          description:
+            "Identify the hostname associated with any IP address. Useful for network troubleshooting, email server configuration validation, and identifying potentially malicious servers.",
+          url: "reverse-dns/index.html",
+        },
+        {
+          name: "ASN Lookup",
+          description:
+            "Retrieve detailed information about Autonomous System Numbers including IP ranges, routing policies, and organizational data. Essential for network mapping and investigating network-level threats.",
+          url: "asn-lookup/index.html",
+        },
+        {
+          name: "Global Ping Test",
+          description:
+            "Measure network latency from multiple international locations to your server. Valuable for evaluating global performance, troubleshooting regional access issues, and CDN optimization.",
+          url: "global-ping/index.html",
+        },
+        {
+          name: "DNSSEC Test",
+          description:
+            "Verify the proper implementation and validity of DNSSEC on any domain. Helps prevent DNS spoofing attacks and ensures the integrity of your domain's DNS infrastructure.",
+          url: "dnssec-test/index.html",
+        },
+        {
+          name: "URL Decode",
+          description:
+            "Convert URL-encoded strings back to their original format. Useful for analyzing suspicious URLs, troubleshooting web application issues, and forensic investigation of web traffic.",
+          url: "url-decode/index.html",
+        },
+        {
+          name: "Abuse Lookup",
+          description:
+            "Find the appropriate abuse contact information for any IP address or domain. Essential for reporting spam, network abuse, or security incidents to the responsible network operators.",
+          url: "abuse-lookup/index.html",
+        },
+        {
+          name: "MAC Address Lookup",
+          description:
+            "Identify the manufacturer of network hardware from its MAC address. Useful for network inventory management, unauthorized device detection, and hardware authentication.",
+          url: "mac-lookup/index.html",
+        },
+        {
+          name: "Free Email Test",
+          description:
+            "Verify if an email address belongs to a free email provider or a corporate domain. Helps with lead qualification, fraud prevention, and implementing appropriate email security policies.",
+          url: "free-email-test/index.html",
+        },
+      ];
+      function renderTools(filter = "") {
+        const container = document.getElementById("tools-container");
+        container.innerHTML = "";
+        const q = filter.trim().toLowerCase();
+        const filtered = q
+          ? tools.filter(
+              (tool) =>
+                tool.name.toLowerCase().includes(q) ||
+                tool.description.toLowerCase().includes(q)
+            )
+          : tools;
+        if (filtered.length === 0) {
+          container.innerHTML =
+            '<p style="grid-column:1/-1;color:#a52a2a;font-weight:500;">No tools found matching your search.</p>';
+          return;
+        }
+        filtered.forEach((tool) => {
+          const card = document.createElement("div");
+          card.className = "tool-card";
+          card.innerHTML = `<h3>${tool.name}</h3><p>${tool.description}</p><a href="${tool.url}" class="tool-btn" aria-label="Use ${tool.name} tool">Use Tool</a>`;
+          container.appendChild(card);
+        });
+      }
+      document
+        .getElementById("search-input")
+        .addEventListener("input", function (e) {
+          renderTools(e.target.value);
+        });
+      document.addEventListener("DOMContentLoaded", function () {
+        renderTools();
+      });
+      ["header", "footer"].forEach((id) => {
+        fetch(`${id}.html`)
+          .then((r) => r.text())
+          .then((html) => {
+            document.getElementById(`${id}-include`).innerHTML = html;
+          });
+      });
+    </script>
+  </body>
+</html>

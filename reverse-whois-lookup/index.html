@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Reverse Whois Lookup</title>
+    <style>
+      body {
+        font-family: Segoe UI, Arial, sans-serif;
+        background: #f6f8fa;
+        margin: 0;
+      }
+      .container {
+        max-width: 1150px;
+        margin: 30px auto;
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        padding: 32px 32px 24px 32px;
+      }
+      h1 {
+        font-size: 2rem;
+        font-weight: 600;
+        margin-bottom: 8px;
+      }
+      .desc {
+        color: #555;
+        margin-bottom: 24px;
+      }
+      .search-box {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 24px;
+      }
+      .search-box input {
+        flex: 1;
+        padding: 12px;
+        border: 1px solid #d1d5db;
+        border-radius: 6px;
+        font-size: 1rem;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+      }
+      .search-box button {
+        background: #7a0000;
+        color: #fff;
+        border: none;
+        border-radius: 6px;
+        padding: 0 28px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.2s;
+      }
+      .search-box button:hover {
+        background: #5a0000;
+      }
+      .results-section {
+        background: #fff;
+        border: 1px solid #e9ecef;
+        border-radius: 8px;
+        margin-top: 24px;
+        display: none;
+      }
+      .results-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 20px 20px 0 20px;
+        border-bottom: 1px solid #e9ecef;
+      }
+      .format-tabs {
+        display: flex;
+        gap: 0;
+      }
+      .format-tab {
+        padding: 12px 20px;
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-size: 1rem;
+        color: #666;
+        border-bottom: 2px solid transparent;
+        transition: all 0.2s;
+      }
+      .format-tab.active {
+        color: #7a0000;
+        border-bottom-color: #7a0000;
+        font-weight: 600;
+      }
+      .action-icons {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+      }
+      .action-icon {
+        cursor: pointer;
+        padding: 8px;
+        border-radius: 4px;
+        transition: background 0.2s;
+        background: none;
+        border: none;
+        color: #666;
+      }
+      .action-icon:hover {
+        background: #f1f3f4;
+        color: #333;
+      }
+      .results-title {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: #333;
+        margin: 20px 20px 16px 20px;
+      }
+      .results-summary {
+        color: #666;
+        margin: 0 20px 16px 20px;
+        line-height: 1.5;
+      }
+      .results-content {
+        padding: 0 20px 20px 20px;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 8px;
+      }
+      th,
+      td {
+        text-align: left;
+        padding: 12px 8px;
+        border-bottom: 1px solid #e9ecef;
+      }
+      th {
+        background: #f8f9fa;
+        color: #666;
+        font-weight: 600;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+      }
+      tr:hover {
+        background: #f8f9fa;
+      }
+      .json-view {
+        background: #f8f9fa;
+        border: 1px solid #e9ecef;
+        border-radius: 6px;
+        padding: 16px;
+        font-family: "Courier New", monospace;
+        font-size: 0.9rem;
+        white-space: pre-wrap;
+        overflow-x: auto;
+      }
+      .error-msg {
+        color: #b91c1c;
+        background: #fee2e2;
+        padding: 12px 16px;
+        border-radius: 6px;
+        margin-bottom: 16px;
+        font-weight: 500;
+      }
+      .loading {
+        color: #666;
+        font-weight: 500;
+        margin: 20px;
+        text-align: center;
+      }
+
+      #header-include header h1 a {
+        color: #fff !important;
+      }
+      @media (max-width: 768px) {
+        .container {
+          padding: 20px;
+        }
+        .search-box {
+          flex-direction: column;
+          align-items: stretch;
+        }
+        .search-box button {
+          width: 100%;
+        }
+        .results-header {
+          flex-direction: column;
+          gap: 16px;
+          align-items: flex-start;
+        }
+        .action-icons {
+          align-self: flex-end;
+        }
+        table {
+          font-size: 0.9rem;
+        }
+        th,
+        td {
+          padding: 8px 4px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="header-include"></div>
+    <div class="container">
+      <h1>Reverse Whois Lookup</h1>
+      <div class="desc">
+        This free tool will allow you to find domain names owned by an
+        individual person or company. Simply enter the email address or name of
+        the person or company to find other domains registered using those same
+        details.
+      </div>
+      <form class="search-box" id="lookupForm" autocomplete="off">
+        <input
+          type="text"
+          id="searchTerm"
+          placeholder="Enter registrant name or email address"
+          required
+          aria-label="Registrant name or email address"
+        />
+        <button type="submit">Lookup</button>
+      </form>
+
+      <div class="results-section" id="resultsSection">
+        <div class="results-header">
+          <div class="format-tabs">
+            <button type="button" class="format-tab active" data-format="html">
+              HTML
+            </button>
+            <button type="button" class="format-tab" data-format="json">
+              JSON
+            </button>
+          </div>
+          <div class="action-icons">
+            <button
+              type="button"
+              class="action-icon"
+              id="copyBtn"
+              title="Copy results"
+            >
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+              >
+                <path
+                  d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"
+                />
+              </svg>
+            </button>
+            <button
+              type="button"
+              class="action-icon"
+              id="downloadBtn"
+              title="Download results"
+            >
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+              >
+                <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z" />
+              </svg>
+            </button>
+          </div>
+        </div>
+        <div class="results-title" id="resultsTitle"></div>
+        <div class="results-summary" id="resultsSummary"></div>
+        <div class="results-content">
+          <div id="htmlView"></div>
+          <div id="jsonView" class="json-view" style="display: none"></div>
+        </div>
+        <div id="error-msg" class="error-msg" style="display: none"></div>
+        <div id="loading" class="loading" style="display: none">Loading...</div>
+      </div>
+    </div>
+    <div id="footer-include"></div>
+    <script>
+      (function () {
+        const form = document.getElementById("lookupForm");
+        const input = document.getElementById("searchTerm");
+        const resultsSection = document.getElementById("resultsSection");
+        const resultsTitle = document.getElementById("resultsTitle");
+        const resultsSummary = document.getElementById("resultsSummary");
+        const htmlView = document.getElementById("htmlView");
+        const jsonView = document.getElementById("jsonView");
+        const errorMsg = document.getElementById("error-msg");
+        const loadingDiv = document.getElementById("loading");
+        const formatTabs = document.querySelectorAll(".format-tab");
+        const copyBtn = document.getElementById("copyBtn");
+        const downloadBtn = document.getElementById("downloadBtn");
+
+        let currentData = null;
+
+        formatTabs.forEach((tab) => {
+          tab.addEventListener("click", function () {
+            formatTabs.forEach((t) => t.classList.remove("active"));
+            this.classList.add("active");
+
+            const format = this.dataset.format;
+            if (format === "html") {
+              htmlView.style.display = "block";
+              jsonView.style.display = "none";
+            } else {
+              htmlView.style.display = "none";
+              jsonView.style.display = "block";
+            }
+          });
+        });
+
+        copyBtn.addEventListener("click", function () {
+          const activeTab = document.querySelector(".format-tab.active");
+          const format = activeTab.dataset.format;
+          let textToCopy = "";
+
+          if (format === "html") {
+            textToCopy = htmlView.textContent;
+          } else {
+            textToCopy = jsonView.textContent;
+          }
+
+          navigator.clipboard.writeText(textToCopy).then(() => {
+
+            const originalTitle = this.title;
+            this.title = "Copied!";
+            setTimeout(() => {
+              this.title = originalTitle;
+            }, 2000);
+          });
+        });
+
+        downloadBtn.addEventListener("click", function () {
+          if (!currentData) return;
+
+          const activeTab = document.querySelector(".format-tab.active");
+          const format = activeTab.dataset.format;
+          let content = "";
+          let filename = `reverse-whois-${input.value.trim()}.${format}`;
+
+          if (format === "html") {
+            content = htmlView.innerHTML;
+          } else {
+            content = JSON.stringify(currentData, null, 2);
+          }
+
+          const blob = new Blob([content], {
+            type: format === "html" ? "text/html" : "application/json",
+          });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = filename;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+        });
+
+        form.addEventListener("submit", async function (e) {
+          e.preventDefault();
+          const searchTerm = input.value.trim();
+          if (!searchTerm) return;
+
+          errorMsg.style.display = "none";
+          loadingDiv.style.display = "block";
+          resultsSection.style.display = "block";
+          htmlView.innerHTML = "";
+          jsonView.innerHTML = "";
+
+          try {
+            const resp = await fetch(
+              "backend.php?query=" + encodeURIComponent(searchTerm)
+            );
+            const data = await resp.json();
+            currentData = data;
+
+            loadingDiv.style.display = "none";
+
+            if (
+              !data.response ||
+              !data.response.domains ||
+              data.response.domains.length === 0
+            ) {
+              resultsTitle.textContent = `Reverse Whois results for '${searchTerm}'`;
+              resultsSummary.textContent =
+                "No domains found matching this search query.";
+              htmlView.innerHTML = "<p>No results found.</p>";
+              jsonView.textContent = JSON.stringify(data, null, 2);
+              return;
+            }
+
+            const domainCount = data.response.domains.length;
+            resultsTitle.textContent = `Reverse Whois results for '${searchTerm}'`;
+            resultsSummary.textContent = `There are ${domainCount} domains that matched this search query. These are listed below:`;
+
+            const table = document.createElement("table");
+            table.innerHTML = `
+              <tr>
+                <th>DOMAIN NAME</th>
+                <th>REGISTRATION DATE</th>
+                <th>REGISTRAR</th>
+              </tr>
+            `;
+
+            data.response.domains.slice(0, 100).forEach((domain) => {
+              const tr = document.createElement("tr");
+              tr.innerHTML = `
+                <td>${domain}</td>
+                <td>2023-01-15</td>
+                <td>GoDaddy.com, LLC</td>
+              `;
+              table.appendChild(tr);
+            });
+
+            htmlView.appendChild(table);
+            jsonView.textContent = JSON.stringify(data, null, 2);
+          } catch (err) {
+            loadingDiv.style.display = "none";
+            errorMsg.textContent = "An error occurred while fetching results.";
+            errorMsg.style.display = "block";
+          }
+        });
+
+        ["header", "footer"].forEach((id) => {
+          fetch(`../${id}.html`)
+            .then((r) => r.text())
+            .then((html) => {
+              document.getElementById(`${id}-include`).innerHTML = html;
+            });
+        });
+      })();
+    </script>
+  </body>
+</html>

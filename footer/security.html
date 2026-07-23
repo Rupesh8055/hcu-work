@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Security & Firewall Testing Tools - Cyber Jagrithi</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        background-color: #f9fafb;
+        color: #2b0000;
+        line-height: 1.6;
+        min-height: 100vh;
+        margin: 0;
+        font-family: "Roboto", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .security-container {
+        max-width: 1150px;
+        margin: 30px auto;
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        padding: 32px 32px 24px 32px;
+      }
+      .security-section {
+        margin-bottom: 40px;
+      }
+      .security-section:last-child {
+        margin-bottom: 0;
+      }
+      .security-section h2 {
+        color: #7a0000;
+        font-size: 1.8rem;
+        font-weight: 600;
+        margin-bottom: 16px;
+      }
+      .security-section p {
+        color: #4b5563;
+        line-height: 1.6;
+        margin-bottom: 16px;
+      }
+      .tools-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 24px;
+        margin: 32px 0;
+      }
+      .tool-card {
+        background: #f8fafc;
+        padding: 24px;
+        border-radius: 8px;
+        border-left: 4px solid #7a0000;
+      }
+      .tool-card h3 {
+        color: #1f2937;
+        font-size: 1.2rem;
+        margin-bottom: 12px;
+        font-weight: 600;
+      }
+      .tool-card p {
+        color: #4b5563;
+        margin-bottom: 16px;
+        font-size: 0.95rem;
+      }
+      .tool-btn {
+        background: #7a0000;
+        color: #fff;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 6px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: background 0.2s;
+        text-decoration: none;
+        display: inline-block;
+        font-size: 0.95rem;
+      }
+      .tool-btn:hover {
+        background: #5a0000;
+      }
+
+      @media (max-width: 768px) {
+        header h1 {
+          font-size: 2rem;
+        }
+        header p {
+          font-size: 1rem;
+        }
+        .tools-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="header-include"></div>
+    <main>
+      <div class="security-container">
+        <div class="security-section">
+          <h2>Security & Firewall Testing Tools</h2>
+          <p>
+            Comprehensive security assessment and firewall testing tools for
+            security professionals, network administrators, and cybersecurity
+            researchers. Our tools help you identify security vulnerabilities,
+            test firewall configurations, and perform thorough security
+            assessments.
+          </p>
+        </div>
+
+        <div class="security-section">
+          <h2>Available Tools</h2>
+          <div class="tools-grid">
+            <div class="tool-card">
+              <h3>Spam Database Lookup</h3>
+              <p>
+                Check if IP addresses or domains are listed on major spam
+                blacklists. Essential for email deliverability troubleshooting
+                and reputation monitoring.
+              </p>
+              <a href="../spam-database/" class="tool-btn">Use Tool</a>
+            </div>
+
+            <div class="tool-card">
+              <h3>Abuse Contact Finder</h3>
+              <p>
+                Find abuse contact information for IP addresses and domains.
+                Useful for reporting security incidents and network abuse.
+              </p>
+              <a href="../abuse-lookup/" class="tool-btn">Use Tool</a>
+            </div>
+
+            <div class="tool-card">
+              <h3>Chinese Firewall Test</h3>
+              <p>
+                Test website accessibility from China and identify potential
+                blocking. Essential for businesses targeting Chinese markets.
+              </p>
+              <a href="../chinese-firewall-test/" class="tool-btn">Use Tool</a>
+            </div>
+
+            <div class="tool-card">
+              <h3>Iran Firewall Test</h3>
+              <p>
+                Test website accessibility from Iran and identify potential
+                blocking. Useful for understanding regional access restrictions.
+              </p>
+              <a href="../iran-firewall-test/" class="tool-btn">Use Tool</a>
+            </div>
+
+            <div class="tool-card">
+              <h3>HTTP Headers Analyzer</h3>
+              <p>
+                Analyze HTTP headers to identify security configurations and
+                potential vulnerabilities. Essential for web application
+                security assessments.
+              </p>
+              <a href="../http-headers/" class="tool-btn">Use Tool</a>
+            </div>
+
+            <div class="tool-card">
+              <h3>URL Decoder</h3>
+              <p>
+                Decode URL-encoded strings to reveal hidden information. Useful
+                for security analysis and threat investigation.
+              </p>
+              <a href="../url-decode/" class="tool-btn">Use Tool</a>
+            </div>
+          </div>
+        </div>
+
+        <div class="security-section">
+          <h2>Use Cases</h2>
+          <ul>
+            <li>
+              <strong>Security Audits:</strong> Identify vulnerabilities and
+              security misconfigurations
+            </li>
+            <li>
+              <strong>Firewall Testing:</strong> Test accessibility across
+              different regions and networks
+            </li>
+            <li>
+              <strong>Email Security:</strong> Monitor IP reputation and
+              troubleshoot email delivery issues
+            </li>
+            <li>
+              <strong>Incident Response:</strong> Report security incidents and
+              abuse to appropriate contacts
+            </li>
+            <li>
+              <strong>Compliance Testing:</strong> Ensure applications meet
+              regional accessibility requirements
+            </li>
+          </ul>
+        </div>
+      </div>
+    </main>
+    <div id="footer-include"></div>
+    <script>
+      ["header", "footer"].forEach((id) => {
+        fetch(`../${id}.html`)
+          .then((r) => r.text())
+          .then((html) => {
+            document.getElementById(`${id}-include`).innerHTML = html;
+          });
+      });
+    </script>
+  </body>
+</html>

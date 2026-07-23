@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DNSSEC Test</title>
+    <style>
+      body {
+        font-family: Segoe UI, Arial, sans-serif;
+        background: #f6f8fa;
+        margin: 0;
+      }
+      .container {
+        max-width: 1150px;
+        margin: 30px auto 0 auto;
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        padding: 32px 32px 24px 32px;
+        margin-top: 2rem;
+        margin-bottom: 2.5em;
+      }
+      h1 {
+        font-size: 2rem;
+        font-weight: 600;
+        margin-bottom: 8px;
+      }
+      .desc {
+        color: #555;
+        margin-bottom: 24px;
+      }
+      .search-box {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-bottom: 24px;
+      }
+      .search-box label {
+        display: none;
+      }
+      .search-box input {
+        flex: 1;
+        padding: 12px;
+        border: 1px solid #d1d5db;
+        border-radius: 6px;
+        font-size: 1rem;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+      }
+      .search-box button {
+        background: #7a0000;
+        color: #fff;
+        border: none;
+        border-radius: 6px;
+        padding: 0 28px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.2s;
+      }
+      .search-box button:hover {
+        background: #5a0000;
+      }
+      .tabs {
+        display: flex;
+        gap: 24px;
+        border-bottom: 1px solid #e5e7eb;
+        margin-bottom: 0;
+      }
+      .tab {
+        padding: 12px 0;
+        font-weight: 500;
+        color: #222;
+        cursor: pointer;
+        border-bottom: 2px solid transparent;
+        text-decoration: none;
+      }
+      .tab.active {
+        border-bottom: 2px solid #7a0000;
+        color: #7a0000;
+      }
+      .results-header {
+        font-size: 1.2rem;
+        font-weight: 500;
+        margin: 24px 0 8px 0;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 8px;
+      }
+      th,
+      td {
+        text-align: left;
+        padding: 12px 8px;
+      }
+      th {
+        background: #f3f4f6;
+        color: #444;
+        font-weight: 600;
+        border-bottom: 1px solid #e5e7eb;
+      }
+      tr:nth-child(even) {
+        background: #fafbfc;
+      }
+      tr:hover {
+        background: #f1f5f9;
+      }
+      .error-msg {
+        color: #b91c1c;
+        background: #fee2e2;
+        padding: 12px 16px;
+        border-radius: 6px;
+        margin-bottom: 16px;
+        font-weight: 500;
+      }
+      .loading {
+        color: #7a0000;
+        font-weight: bold;
+        margin: 1em 0;
+      }
+      @media (max-width: 600px) {
+        .container {
+          padding: 1em;
+        }
+        .search-box {
+          flex-direction: column;
+        }
+        table,
+        th,
+        td {
+          font-size: 0.95em;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="header-include"></div>
+    <div class="container">
+      <h1>DNSSEC Test</h1>
+      <div class="desc">
+        Verify the proper implementation and validity of DNSSEC on any domain.
+        Helps prevent DNS spoofing attacks and ensures the integrity of your
+        domain's DNS infrastructure.
+      </div>
+      <form class="search-box" autocomplete="off">
+        <label for="domain">Domain</label>
+        <input
+          type="text"
+          name="domain"
+          id="domain"
+          placeholder="Enter domain (e.g. example.com)"
+          required
+          aria-label="Domain"
+        />
+        <button type="submit">Test</button>
+      </form>
+      <div class="tabs" style="display: none">
+        <a href="#" class="tab active">HTML</a>
+        <a href="#" class="tab">JSON</a>
+      </div>
+      <div class="results">
+        <div class="results-content"></div>
+        <div id="error-msg" class="error-msg" style="display: none"></div>
+        <div id="loading" class="loading" style="display: none">Loading...</div>
+      </div>
+    </div>
+    <div id="footer-include"></div>
+    <script>
+      function escapeHtml(str) {
+        return str.replace(
+          /[&<>"']/g,
+          (t) =>
+            ({
+              "&": "&amp;",
+              "<": "&lt;",
+              ">": "&gt;",
+              '"': "&quot;",
+              "'": "&#39;",
+            }[t] || t)
+        );
+      }
+      (function () {
+        let currentTab = "html",
+          lastQuery = "",
+          lastDnssec = [];
+        const form = document.querySelector(".search-box"),
+          input = form.querySelector("input"),
+          tabs = document.querySelector(".tabs"),
+          htmlTab = tabs.querySelectorAll(".tab")[0],
+          jsonTab = tabs.querySelectorAll(".tab")[1],
+          resultsDiv = document.querySelector(".results"),
+          resultsContent = resultsDiv.querySelector(".results-content"),
+          errorMsg = document.getElementById("error-msg"),
+          loadingDiv = document.getElementById("loading");
+        function switchTab(tab) {
+          currentTab = tab;
+          htmlTab.className = "tab" + (tab === "html" ? " active" : "");
+          htmlTab.style.borderBottom =
+            tab === "html" ? "2px solid #7a0000" : "2px solid transparent";
+          htmlTab.style.color = tab === "html" ? "#7a0000" : "#222";
+          jsonTab.className = "tab" + (tab === "json" ? " active" : "");
+          jsonTab.style.borderBottom =
+            tab === "json" ? "2px solid #7a0000" : "2px solid transparent";
+          jsonTab.style.color = tab === "json" ? "#7a0000" : "#222";
+          renderResults(lastQuery, lastDnssec);
+        }
+        htmlTab.onclick = (e) => {
+          e.preventDefault();
+          switchTab("html");
+        };
+        jsonTab.onclick = (e) => {
+          e.preventDefault();
+          switchTab("json");
+        };
+        form.onsubmit = async (e) => {
+          e.preventDefault();
+          const query = input.value.trim();
+          if (!query) return;
+          errorMsg.style.display = "none";
+          loadingDiv.style.display = "block";
+          try {
+            const resp = await fetch(
+              "backend.php?domain=" + encodeURIComponent(query)
+            );
+            const data = await resp.json();
+            lastQuery = query;
+            lastDnssec = data;
+            renderResults(query, data);
+            loadingDiv.style.display = "none";
+          } catch (err) {
+            loadingDiv.style.display = "none";
+            errorMsg.textContent = "An error occurred while fetching results.";
+            errorMsg.style.display = "block";
+          }
+        };
+        function renderResults(query, dnssec) {
+          resultsContent.innerHTML = "";
+          tabs.style.display = "none";
+          if (!query) return;
+          const header = document.createElement("div");
+          header.className = "results-header";
+          header.innerHTML = `DNSSEC Test Results for <b>${escapeHtml(
+            query
+          )}</b>`;
+          resultsContent.appendChild(header);
+          if (currentTab === "json") {
+            const json = {
+              query: { tool: "dnssec-test", domain: query },
+              response: dnssec,
+            };
+            const pre = document.createElement("pre");
+            pre.textContent = JSON.stringify(json, null, 2);
+            pre.style.background = "#f3f4f6";
+            pre.style.padding = "16px";
+            pre.style.borderRadius = "8px";
+            pre.style.overflow = "auto";
+            pre.style.maxHeight = "420px";
+            pre.style.fontSize = "1rem";
+            pre.style.boxShadow = "none";
+            pre.style.margin = "0";
+            resultsContent.appendChild(pre);
+            if (Array.isArray(dnssec) && dnssec.length > 0) {
+              tabs.style.display = "";
+            }
+          } else {
+            const table = document.createElement("table");
+            table.innerHTML =
+              "<thead><tr><th>Test</th><th>Status</th><th>Details</th></tr></thead>";
+            const tbody = document.createElement("tbody");
+            if (Array.isArray(dnssec)) {
+              dnssec.forEach((row) => {
+                const tr = document.createElement("tr");
+                ["test", "status", "details"].forEach((key) => {
+                  const td = document.createElement("td");
+                  td.textContent = row[key] || "";
+                  tr.appendChild(td);
+                });
+                tbody.appendChild(tr);
+              });
+            }
+            table.appendChild(tbody);
+            resultsContent.appendChild(table);
+            if (Array.isArray(dnssec) && dnssec.length > 0) {
+              tabs.style.display = "";
+            }
+          }
+        }
+        renderResults("", []);
+      })();
+
+      ["header", "footer"].forEach((id) => {
+        fetch(`../${id}.html`)
+          .then((r) => r.text())
+          .then((html) => {
+            document.getElementById(`${id}-include`).innerHTML = html;
+          });
+      });
+    </script>
+  </body>
+</html>

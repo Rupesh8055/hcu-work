@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Port Scanner</title>
+    <style>
+      body {
+        font-family: Segoe UI, Arial, sans-serif;
+        background: #f6f8fa;
+        margin: 0;
+      }
+      .container {
+        max-width: 1150px;
+        margin: 30px auto;
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        padding: 32px 32px 24px 32px;
+      }
+      h1 {
+        font-size: 2rem;
+        font-weight: 600;
+        margin-bottom: 8px;
+      }
+      .desc {
+        color: #555;
+        margin-bottom: 24px;
+      }
+      .search-box {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 24px;
+      }
+      .search-box input {
+        flex: 1;
+        padding: 12px;
+        border: 1px solid #d1d5db;
+        border-radius: 6px;
+        font-size: 1rem;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+      }
+      .search-box button {
+        background: #7a0000;
+        color: #fff;
+        border: none;
+        border-radius: 6px;
+        padding: 0 28px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.2s;
+      }
+      .search-box button:hover {
+        background: #5a0000;
+      }
+      .tabs {
+        display: flex;
+        gap: 24px;
+        border-bottom: 1px solid #e5e7eb;
+        margin-bottom: 0;
+      }
+      .tab {
+        padding: 12px 0;
+        font-weight: 500;
+        color: #222;
+        cursor: pointer;
+        border-bottom: 2px solid transparent;
+        text-decoration: none;
+      }
+      .tab.active {
+        border-bottom: 2px solid #7a0000;
+        color: #7a0000;
+      }
+      .results-header {
+        font-size: 1.2rem;
+        font-weight: 500;
+        margin: 24px 0 8px 0;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 8px;
+      }
+      th,
+      td {
+        text-align: left;
+        padding: 10px;
+      }
+      th {
+        background: #f3f4f6;
+        color: #444;
+        font-weight: 600;
+        border-bottom: 1px solid #e5e7eb;
+      }
+      tr:nth-child(even) {
+        background: #fafbfc;
+      }
+      tr:hover {
+        background: #f1f5f9;
+      }
+      .status-ok {
+        color: #059669;
+        background: #e6f9ed;
+      }
+      .status-error {
+        color: #dc2626;
+        background: #fee2e2;
+      }
+      .summary {
+        margin-bottom: 12px;
+        color: #555;
+      }
+      .ports-info {
+        margin-bottom: 10px;
+        color: #800000;
+        font-size: 1.08em;
+        background: #f8f8fa;
+        border-left: 4px solid #800000;
+        padding: 10px 18px;
+        border-radius: 6px;
+        display: inline-block;
+        font-weight: 500;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="header-include"></div>
+    <div id="app">
+      <div class="container">
+        <h1>Port Scanner</h1>
+        <div class="desc">
+          Scan for open ports on any host. Enter a hostname or IP address and
+          specify ports to scan.
+        </div>
+        <div class="ports-info">
+          <strong>Ports scanned are:</strong> 20, 21, 22, 23, 25, 53, 67, 68,
+          69, 80, 110, 123, 137, 138, 139, 143, 161, 162, 389, 443, 445, 636,
+          993, 995, 1433, 1521, 3306, 3389, 5432, 5900, 5901, 5902, 5903, 6379,
+          8080, 8443, 9000, 9090, 27017, 27018, 27019, 50070, 50075, 50090
+        </div>
+        <form class="search-box" autocomplete="off">
+          <input
+            type="text"
+            name="host"
+            placeholder="Enter hostname or IP"
+            required
+          />
+          <button type="submit">Scan</button>
+        </form>
+        <div class="tabs" style="display: none">
+          <a href="#" class="tab active">HTML</a>
+          <a href="#" class="tab">JSON</a>
+        </div>
+        <div class="results" style="display: none"></div>
+      </div>
+    </div>
+    <div id="footer-include"></div>
+    <script>
+      (function () {
+        const COMMON_PORTS = [
+          { port: 20, service: "FTP-data" },
+          { port: 21, service: "FTP" },
+          { port: 22, service: "SSH" },
+          { port: 23, service: "Telnet" },
+          { port: 25, service: "SMTP" },
+          { port: 53, service: "DNS" },
+          { port: 67, service: "DHCP" },
+          { port: 68, service: "DHCP" },
+          { port: 69, service: "TFTP" },
+          { port: 80, service: "HTTP" },
+          { port: 110, service: "POP3" },
+          { port: 123, service: "NTP" },
+          { port: 137, service: "NetBIOS" },
+          { port: 138, service: "NetBIOS" },
+          { port: 139, service: "NetBIOS" },
+          { port: 143, service: "IMAP" },
+          { port: 161, service: "SNMP" },
+          { port: 162, service: "SNMP-trap" },
+          { port: 389, service: "LDAP" },
+          { port: 443, service: "HTTPS" },
+          { port: 445, service: "SMB" },
+          { port: 636, service: "LDAPS" },
+          { port: 993, service: "IMAPS" },
+          { port: 995, service: "POP3S" },
+          { port: 1433, service: "MSSQL" },
+          { port: 1521, service: "Oracle" },
+          { port: 3306, service: "MySQL" },
+          { port: 3389, service: "RDP" },
+          { port: 5432, service: "PostgreSQL" },
+          { port: 5900, service: "VNC" },
+          { port: 5901, service: "VNC-1" },
+          { port: 5902, service: "VNC-2" },
+          { port: 5903, service: "VNC-3" },
+          { port: 6379, service: "Redis" },
+          { port: 8080, service: "HTTP-alt" },
+          { port: 8443, service: "HTTPS-alt" },
+          { port: 9000, service: "Webmin" },
+          { port: 9090, service: "Webmin-alt" },
+          { port: 27017, service: "MongoDB" },
+          { port: 27018, service: "MongoDB-shard" },
+          { port: 27019, service: "MongoDB-config" },
+          { port: 50070, service: "Hadoop-NameNode" },
+          { port: 50075, service: "Hadoop-DataNode" },
+          { port: 50090, service: "Hadoop-SecondaryNameNode" },
+        ];
+        let currentTab = "html";
+        let lastHost = "";
+        let lastScanResults = [];
+        const app = document.getElementById("app");
+        const container = app.querySelector(".container");
+        const form = container.querySelector(".search-box");
+        const hostInput = form.querySelector("input");
+        const button = form.querySelector("button");
+        const tabs = container.querySelector(".tabs");
+        const htmlTab = tabs.querySelectorAll(".tab")[0];
+        const jsonTab = tabs.querySelectorAll(".tab")[1];
+        const resultsDiv = container.querySelector(".results");
+        function switchTab(tab) {
+          currentTab = tab;
+          htmlTab.className = "tab" + (tab === "html" ? " active" : "");
+          htmlTab.style.borderBottom =
+            tab === "html" ? "2px solid #7a0000" : "2px solid transparent";
+          htmlTab.style.color = tab === "html" ? "#7a0000" : "#222";
+          jsonTab.className = "tab" + (tab === "json" ? " active" : "");
+          jsonTab.style.borderBottom =
+            tab === "json" ? "2px solid #7a0000" : "2px solid transparent";
+          jsonTab.style.color = tab === "json" ? "#7a0000" : "#222";
+          renderResults(lastHost, lastScanResults);
+        }
+        htmlTab.addEventListener("click", function (e) {
+          e.preventDefault();
+          switchTab("html");
+        });
+        jsonTab.addEventListener("click", function (e) {
+          e.preventDefault();
+          switchTab("json");
+        });
+        form.addEventListener("submit", async function (e) {
+          e.preventDefault();
+          const host = hostInput.value.trim();
+          if (!host) return;
+          button.textContent = "Scanning...";
+          button.disabled = true;
+          button.style.background = "#666";
+
+          const progressDiv = document.createElement("div");
+          progressDiv.innerHTML = `
+            <div style="margin: 16px 0; padding: 12px; background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 6px;">
+              <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                <div style="width: 16px; height: 16px; border: 2px solid #3b82f6; border-top: 2px solid transparent; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+                <span style="font-weight: 500; color: #1e40af;">Scanning ports...</span>
+              </div>
+                             <div style="font-size: 0.9rem; color: #64748b;">
+                 Scanning 45 ports on <strong>${escapeHtml(
+                   host
+                 )}</strong>. This should take 15-20 seconds.
+               </div>
+            </div>
+          `;
+          progressDiv.style.cssText = `
+            @keyframes spin {
+              0% { transform: rotate(0deg); }
+              100% { transform: rotate(360deg); }
+            }
+          `;
+          resultsDiv.innerHTML = "";
+          resultsDiv.appendChild(progressDiv);
+          resultsDiv.style.display = "block";
+
+          try {
+            console.log(
+              "Sending request to:",
+              `backend.php?host=${encodeURIComponent(host)}`
+            );
+            const response = await fetch(
+              `backend.php?host=${encodeURIComponent(host)}`
+            );
+
+            console.log("Response status:", response.status);
+            if (!response.ok) {
+              throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const scanResults = await response.json();
+            console.log("Scan results:", scanResults);
+            console.log("Results array:", scanResults.results);
+            console.log("Open ports:", scanResults.open_ports);
+            console.log("Closed ports:", scanResults.closed_ports);
+            console.log("Filtered ports:", scanResults.filtered_ports);
+            lastHost = host;
+            lastScanResults = scanResults;
+            tabs.style.display = "flex";
+            resultsDiv.style.display = "block";
+            renderResults(host, scanResults);
+          } catch (error) {
+            console.error("Port scanner error:", error);
+            showError(
+              `Error: ${
+                error.message || "Unable to scan ports. Please try again."
+              }`
+            );
+          } finally {
+            button.textContent = "Scan";
+            button.disabled = false;
+            button.style.background = "#7a0000";
+          }
+        });
+        function showError(msg) {
+          resultsDiv.innerHTML = `<div style='color:#dc2626;padding:12px;background:#fef2f2;border:1px solid #fecaca;border-radius:6px;margin-top:12px;'>${msg}</div>`;
+        }
+        function renderResults(host, scanResults) {
+          resultsDiv.innerHTML = "";
+          if (!host) return;
+
+          const response = scanResults.response || scanResults;
+
+          if (response.error) {
+            showError(`Error: ${response.error}`);
+            return;
+          }
+
+          const resultsSection = document.createElement("div");
+          resultsSection.style.cssText = `
+             background: #fff;
+             border: 1px solid #e1e5e9;
+             border-radius: 8px;
+             margin-top: 20px;
+             overflow: hidden;
+           `;
+
+          const header = document.createElement("div");
+          header.style.cssText = `
+             background: #f8f9fa;
+             border-bottom: 1px solid #e1e5e9;
+             padding: 15px 20px;
+             font-weight: 600;
+             color: #333;
+             font-size: 16px;
+           `;
+          header.textContent = `Port Scan Results for ${host}`;
+          resultsSection.appendChild(header);
+
+          const openCount = response.open_ports
+            ? response.open_ports.length
+            : 0;
+          const closedCount = response.closed_ports
+            ? response.closed_ports.length
+            : 0;
+          const filteredCount = response.filtered_ports
+            ? response.filtered_ports.length
+            : 0;
+
+          const summary = document.createElement("div");
+          summary.style.cssText = `
+             background: #f8f9fa;
+             border-bottom: 1px solid #e1e5e9;
+             padding: 10px 20px;
+             font-size: 14px;
+             color: #666;
+           `;
+          summary.textContent = `Found ${openCount} open ports, ${closedCount} closed ports, and ${filteredCount} filtered ports out of ${response.scanned_ports_count} scanned ports.`;
+          resultsSection.appendChild(summary);
+
+          if (currentTab === "html") {
+            const table = document.createElement("table");
+            table.style.cssText = `
+               width: 100%;
+               border-collapse: collapse;
+               font-size: 14px;
+               font-family: Segoe UI, Arial, sans-serif;
+             `;
+
+            const thead = document.createElement("thead");
+            thead.innerHTML = `
+               <tr style="background: #f8f9fa; border-bottom: 2px solid #e1e5e9;">
+                 <th style="padding: 12px 15px; text-align: left; font-weight: 600; color: #333; border-right: 1px solid #e1e5e9; font-family: Segoe UI, Arial, sans-serif;">Port</th>
+                 <th style="padding: 12px 15px; text-align: left; font-weight: 600; color: #333; border-right: 1px solid #e1e5e9; font-family: Segoe UI, Arial, sans-serif;">Protocol</th>
+                 <th style="padding: 12px 15px; text-align: left; font-weight: 600; color: #333; border-right: 1px solid #e1e5e9; font-family: Segoe UI, Arial, sans-serif;">State</th>
+                 <th style="padding: 12px 15px; text-align: left; font-weight: 600; color: #333; border-right: 1px solid #e1e5e9; font-family: Segoe UI, Arial, sans-serif;">Service</th>
+                 <th style="padding: 12px 15px; text-align: left; font-weight: 600; color: #333; font-family: Segoe UI, Arial, sans-serif;">Response Time</th>
+               </tr>
+             `;
+            table.appendChild(thead);
+
+            const tbody = document.createElement("tbody");
+            (response.results || []).forEach((result, index) => {
+              const state = result.status;
+              const responseTime = result.response_time;
+
+              let stateColor, stateText;
+              if (state === "open") {
+                stateColor = "#28a745";
+                stateText = "OPEN";
+              } else if (state === "filtered") {
+                stateColor = "#ffc107";
+                stateText = "FILTERED";
+              } else {
+                stateColor = "#dc3545";
+                stateText = "CLOSED";
+              }
+
+              const tr = document.createElement("tr");
+              tr.style.cssText = `
+                 border-bottom: 1px solid #e1e5e9;
+                 ${
+                   index % 2 === 0
+                     ? "background: #fff;"
+                     : "background: #f8f9fa;"
+                 }
+               `;
+              tr.innerHTML = `
+                 <td style="padding: 12px 15px; color: #333; border-right: 1px solid #e1e5e9; font-family: Segoe UI, Arial, sans-serif;">${result.port}</td>
+                 <td style="padding: 12px 15px; color: #666; border-right: 1px solid #e1e5e9; font-family: Segoe UI, Arial, sans-serif;">TCP</td>
+                 <td style="padding: 12px 15px; border-right: 1px solid #e1e5e9; font-family: Segoe UI, Arial, sans-serif;">
+                   <span style="color: ${stateColor}; text-transform: uppercase;">${stateText}</span>
+                 </td>
+                 <td style="padding: 12px 15px; color: #333; border-right: 1px solid #e1e5e9; font-family: Segoe UI, Arial, sans-serif;">${result.service}</td>
+                 <td style="padding: 12px 15px; color: #666; font-family: Segoe UI, Arial, sans-serif;">${responseTime}ms</td>
+               `;
+              tbody.appendChild(tr);
+            });
+            table.appendChild(tbody);
+            resultsSection.appendChild(table);
+          } else if (currentTab === "json") {
+            const jsonDiv = document.createElement("div");
+            jsonDiv.style.cssText = `
+               padding: 20px;
+               background: #f8f9fa;
+               font-family: 'Courier New', monospace;
+               font-size: 13px;
+               white-space: pre-wrap;
+               max-height: 500px;
+               overflow: auto;
+               border: 1px solid #e1e5e9;
+               margin: 20px;
+               border-radius: 4px;
+             `;
+            jsonDiv.textContent = JSON.stringify(scanResults, null, 2);
+            resultsSection.appendChild(jsonDiv);
+          }
+
+          resultsDiv.appendChild(resultsSection);
+        }
+        function escapeHtml(str) {
+          return str.replace(/[&<>"']/g, function (tag) {
+            const charsToReplace = {
+              "&": "&amp;",
+              "<": "&lt;",
+              ">": "&gt;",
+              '"': "&quot;",
+              "'": "&#39;",
+            };
+            return charsToReplace[tag] || tag;
+          });
+        }
+        renderResults("", []);
+      })();
+
+      ["header", "footer"].forEach((id) => {
+        fetch(`../${id}.html`)
+          .then((r) => {
+            if (!r.ok) {
+              throw new Error(`HTTP ${r.status}: ${r.statusText}`);
+            }
+            return r.text();
+          })
+          .then((html) => {
+            const element = document.getElementById(`${id}-include`);
+            if (element) {
+              element.innerHTML = html;
+            }
+          })
+          .catch((error) => {
+            console.warn(`Failed to load ${id}.html:`, error);
+          });
+      });
+    </script>
+  </body>
+</html>

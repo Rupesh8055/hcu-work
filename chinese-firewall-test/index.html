@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Chinese Firewall Test</title>
+    <style>
+      body {
+        font-family: Segoe UI, Arial, sans-serif;
+        background: #f6f8fa;
+        margin: 0;
+      }
+      .container {
+        max-width: 1150px;
+        margin: 30px auto;
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        padding: 32px 32px 24px 32px;
+      }
+      h1 {
+        font-size: 2rem;
+        font-weight: 600;
+        margin-bottom: 8px;
+      }
+      .desc {
+        color: #555;
+        margin-bottom: 24px;
+      }
+      .search-box {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 24px;
+      }
+      .search-box input {
+        flex: 1;
+        padding: 12px;
+        border: 1px solid #d1d5db;
+        border-radius: 6px;
+        font-size: 1rem;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+      }
+      .search-box button {
+        background: #7a0000;
+        color: #fff;
+        border: none;
+        border-radius: 6px;
+        padding: 0 28px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.2s;
+      }
+      .search-box button:hover {
+        background: #5a0000;
+      }
+      .tabs {
+        display: flex;
+        gap: 24px;
+        border-bottom: 1px solid #e5e7eb;
+        margin-bottom: 0;
+      }
+      .tab {
+        padding: 12px 0;
+        font-weight: 500;
+        color: #222;
+        cursor: pointer;
+        border-bottom: 2px solid transparent;
+        text-decoration: none;
+      }
+      .tab.active {
+        border-bottom: 2px solid #7a0000;
+        color: #7a0000;
+      }
+      .results-header {
+        font-size: 1.2rem;
+        font-weight: 500;
+        margin: 24px 0 8px 0;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 8px;
+      }
+      th,
+      td {
+        text-align: left;
+        padding: 12px 8px;
+      }
+      th {
+        background: #f3f4f6;
+        color: #444;
+        font-weight: 600;
+        border-bottom: 1px solid #e5e7eb;
+      }
+      tr:nth-child(even) {
+        background: #fafbfc;
+      }
+      tr:hover {
+        background: #f1f5f9;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="header-include"></div>
+    <div class="container">
+      <h1>Chinese Firewall Test</h1>
+      <div class="desc">
+        Verify if your website is accessible in China by testing against the
+        Great Firewall. Critical for businesses operating in or targeting the
+        Chinese market to ensure service availability.
+      </div>
+      <form class="search-box" autocomplete="off">
+        <input
+          type="text"
+          name="url"
+          placeholder="Enter website URL (e.g. example.com)"
+          required
+        />
+        <button type="submit">Test Accessibility</button>
+      </form>
+      <div class="tabs" style="display: none">
+        <a href="#" class="tab active">HTML</a>
+        <a href="#" class="tab">JSON</a>
+      </div>
+      <div class="results" style="display: none"></div>
+    </div>
+    <div id="footer-include"></div>
+    <script>
+      function escapeHtml(str) {
+        return str.replace(
+          /[&<>"']/g,
+          (t) =>
+            ({
+              "&": "&amp;",
+              "<": "&lt;",
+              ">": "&gt;",
+              '"': "&quot;",
+              "'": "&#39;",
+            }[t] || t)
+        );
+      }
+      (function () {
+        let currentTab = "html",
+          lastQuery = "",
+          lastResults = {};
+        const form = document.querySelector(".search-box"),
+          input = form.querySelector("input"),
+          tabs = document.querySelector(".tabs"),
+          htmlTab = tabs.querySelectorAll(".tab")[0],
+          jsonTab = tabs.querySelectorAll(".tab")[1],
+          resultsDiv = document.querySelector(".results");
+        function switchTab(tab) {
+          currentTab = tab;
+          htmlTab.className = "tab" + (tab === "html" ? " active" : "");
+          htmlTab.style.borderBottom =
+            tab === "html" ? "2px solid #7a0000" : "2px solid transparent";
+          htmlTab.style.color = tab === "html" ? "#7a0000" : "#222";
+          jsonTab.className = "tab" + (tab === "json" ? " active" : "");
+          jsonTab.style.borderBottom =
+            tab === "json" ? "2px solid #7a0000" : "2px solid transparent";
+          jsonTab.style.color = tab === "json" ? "#7a0000" : "#222";
+          renderResults(lastQuery, lastResults);
+        }
+        htmlTab.onclick = (e) => {
+          e.preventDefault();
+          switchTab("html");
+        };
+        jsonTab.onclick = (e) => {
+          e.preventDefault();
+          switchTab("json");
+        };
+        form.onsubmit = async (e) => {
+          e.preventDefault();
+          const query = input.value.trim();
+          if (!query) return;
+          const resp = await fetch(
+            `/chinese-firewall-test/backend.php?url=${encodeURIComponent(
+              query
+            )}`
+          );
+          const results = await resp.json();
+          lastQuery = query;
+          lastResults = results;
+          tabs.style.display = "flex";
+          resultsDiv.style.display = "block";
+          renderResults(query, results);
+        };
+        function renderResults(query, results) {
+          resultsDiv.innerHTML = "";
+          if (!query) return;
+          const header = document.createElement("div");
+          header.className = "results-header";
+          header.innerHTML = `Accessibility Test Results for <b>${escapeHtml(
+            query
+          )}</b>`;
+          resultsDiv.appendChild(header);
+          if (currentTab === "json") {
+            const json = {
+              query: { tool: "chinese-firewall-test", url: query },
+              response: results,
+            };
+            const pre = document.createElement("pre");
+            pre.textContent = JSON.stringify(json, null, 2);
+            pre.style.background = "#f3f4f6";
+            pre.style.padding = "16px";
+            pre.style.borderRadius = "8px";
+            pre.style.overflow = "auto";
+            pre.style.maxHeight = "420px";
+            pre.style.fontSize = "1rem";
+            pre.style.boxShadow = "none";
+            pre.style.margin = "0";
+            resultsDiv.appendChild(pre);
+          } else {
+            const table = document.createElement("table");
+            table.innerHTML =
+              "<thead><tr><th>Test</th><th>Result</th></tr></thead>";
+            const tbody = document.createElement("tbody");
+            if (results && typeof results === "object") {
+              [
+                ["Overall GFW Status", results.gfw_status ?? "N/A"],
+                [
+                  "DNS Poisoning Detected",
+                  results.dns_poisoning_detected ? "Yes" : "No",
+                ],
+                ["Local DNS IP", results.local_ip ?? "N/A"],
+                [
+                  "TCP Connectivity",
+                  results.tcp_connectivity &&
+                  results.tcp_connectivity.accessible
+                    ? "Accessible"
+                    : "Blocked",
+                ],
+                [
+                  "TCP RST Detected",
+                  results.tcp_connectivity &&
+                  results.tcp_connectivity.gfw_rst_detected
+                    ? "Yes"
+                    : "No",
+                ],
+                [
+                  "HTTP Accessibility",
+                  results.http_accessible ? "Accessible" : "Blocked",
+                ],
+                [
+                  "HTTP Block Suspected",
+                  results.gfw_block_suspected ? "Yes" : "No",
+                ],
+                ["Tested On", results.timestamp ?? "N/A"],
+              ].forEach(([field, value]) => {
+                const tr = document.createElement("tr");
+                const tdField = document.createElement("td");
+                tdField.textContent = field;
+                tr.appendChild(tdField);
+                const tdValue = document.createElement("td");
+                tdValue.textContent = value;
+                tr.appendChild(tdValue);
+                tbody.appendChild(tr);
+              });
+            }
+            table.appendChild(tbody);
+            resultsDiv.appendChild(table);
+          }
+        }
+        renderResults("", {});
+      })();
+
+      ["header", "footer"].forEach((id) => {
+        fetch(`../${id}.html`)
+          .then((r) => r.text())
+          .then((html) => {
+            document.getElementById(`${id}-include`).innerHTML = html;
+          });
+      });
+    </script>
+  </body>
+</html>

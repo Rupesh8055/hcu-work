@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Traceroute Tool</title>
+    <style>
+      body {
+        font-family: Segoe UI, Arial, sans-serif;
+        background: #f6f8fa;
+        margin: 0;
+      }
+      .container {
+        max-width: 1150px;
+        margin: 30px auto;
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        padding: 32px 32px 24px 32px;
+      }
+      h1 {
+        font-size: 2rem;
+        font-weight: 600;
+        margin-bottom: 8px;
+      }
+      .desc {
+        color: #555;
+        margin-bottom: 24px;
+      }
+      .search-box {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 24px;
+      }
+      .search-box label {
+        display: none;
+      }
+      .search-box input {
+        flex: 1;
+        padding: 12px;
+        border: 1px solid #d1d5db;
+        border-radius: 6px;
+        font-size: 1rem;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+      }
+      .search-box button {
+        background: #7a0000;
+        color: #fff;
+        border: none;
+        border-radius: 6px;
+        padding: 0 28px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.2s;
+      }
+      .search-box button:hover {
+        background: #5a0000;
+      }
+      .results-header {
+        font-size: 1.2rem;
+        font-weight: 500;
+        margin: 24px 0 8px 0;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 8px;
+      }
+      th,
+      td {
+        text-align: left;
+        padding: 12px 8px;
+      }
+      th {
+        background: #f3f4f6;
+        color: #444;
+        font-weight: 600;
+        border-bottom: 1px solid #e5e7eb;
+      }
+      tr:nth-child(even) {
+        background: #fafbfc;
+      }
+      tr:hover {
+        background: #f1f5f9;
+      }
+      .error-msg {
+        color: #b91c1c;
+        background: #fee2e2;
+        padding: 12px 16px;
+        border-radius: 6px;
+        margin-bottom: 16px;
+        font-weight: 500;
+      }
+      .loading {
+        color: #800000;
+        font-weight: bold;
+        margin: 1em 0;
+      }
+
+      #header-include header h1 a {
+        color: #fff !important;
+      }
+      @media (max-width: 600px) {
+        .container {
+          padding: 1em;
+        }
+        .search-box {
+          flex-direction: column;
+        }
+        table,
+        th,
+        td {
+          font-size: 0.97em;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="header-include"></div>
+    <div class="container">
+      <h1>Traceroute Tool</h1>
+      <div class="desc">
+        Trace the route packets take to a network host. Useful for network
+        diagnostics and latency analysis.
+      </div>
+      <form class="search-box" id="tracerouteForm" autocomplete="off">
+        <label for="host">Host or IP</label>
+        <input
+          type="text"
+          id="host"
+          placeholder="Enter host or IP (e.g. example.com)"
+          required
+          aria-label="Host or IP"
+        />
+        <button type="submit">Trace</button>
+      </form>
+      <div class="results" id="resultsArea" style="margin-bottom: 32px">
+        <div class="results-content"></div>
+        <div id="error-msg" class="error-msg" style="display: none"></div>
+        <div id="loading" class="loading" style="display: none">Loading...</div>
+      </div>
+    </div>
+    <div id="footer-include"></div>
+    <script>
+      (function () {
+        const form = document.getElementById("tracerouteForm");
+        const input = document.getElementById("host");
+        const resultsArea = document.getElementById("resultsArea");
+        const resultsContent = resultsArea.querySelector(".results-content");
+        const errorMsg = document.getElementById("error-msg");
+        const loadingDiv = document.getElementById("loading");
+        form.addEventListener("submit", async function (e) {
+          e.preventDefault();
+          const host = input.value.trim();
+          if (!host) return;
+          errorMsg.style.display = "none";
+          loadingDiv.style.display = "block";
+          resultsContent.innerHTML = "";
+          try {
+            const resp = await fetch(
+              "backend.php?host=" + encodeURIComponent(host)
+            );
+            const data = await resp.json();
+            loadingDiv.style.display = "none";
+            if (!data.hops || data.hops.length === 0) {
+              resultsContent.innerHTML = "<p>No results found.</p>";
+              return;
+            }
+            const header = document.createElement("div");
+            header.className = "results-header";
+            header.textContent = `Traceroute results for '${host}':`;
+            resultsContent.appendChild(header);
+            const table = document.createElement("table");
+            table.innerHTML =
+              "<tr><th>Hop</th><th>IP</th><th>Hostname</th><th>Time (ms)</th></tr>";
+            data.hops.forEach((hop, idx) => {
+              const tr = document.createElement("tr");
+              tr.innerHTML = `<td>${idx + 1}</td><td>${hop.ip || ""}</td><td>${
+                hop.hostname || ""
+              }</td><td>${hop.time || ""}</td>`;
+              table.appendChild(tr);
+            });
+            resultsContent.appendChild(table);
+          } catch (err) {
+            loadingDiv.style.display = "none";
+            errorMsg.textContent = "An error occurred while fetching results.";
+            errorMsg.style.display = "block";
+          }
+        });
+
+        ["header", "footer"].forEach((id) => {
+          fetch(`../${id}.html`)
+            .then((r) => r.text())
+            .then((html) => {
+              document.getElementById(`${id}-include`).innerHTML = html;
+            });
+        });
+      })();
+    </script>
+  </body>
+</html>

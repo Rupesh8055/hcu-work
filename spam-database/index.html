@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Spam Database Lookup</title>
+    <style>
+      :root {
+        --primary: #7a0000;
+        --secondary: #5a0000;
+        --bg: #f6f8fa;
+        --border: #e5e7eb;
+        --input-bg: #fff;
+        --input-border: #ccc;
+        --error: #c33;
+        --success: #363;
+      }
+      body {
+        background: var(--bg);
+        font-family: Segoe UI, Arial, sans-serif;
+        margin: 0;
+      }
+      .container {
+        max-width: 1150px;
+        margin: 30px auto;
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        padding: 32px 32px 24px 32px;
+      }
+      h1 {
+        font-family: Segoe UI, Arial, sans-serif;
+        font-size: 2rem;
+        font-weight: 600;
+        margin-bottom: 8px;
+      }
+      .desc {
+        font-family: Segoe UI, Arial, sans-serif;
+        color: #555;
+        margin-bottom: 24px;
+      }
+      .search-box {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 24px;
+      }
+      .search-box input {
+        flex: 1;
+        padding: 12px;
+        border: 1px solid #d1d5db;
+        border-radius: 6px;
+        font-size: 1rem;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+      }
+      .search-box button {
+        background: #7a0000;
+        color: #fff;
+        border: none;
+        border-radius: 6px;
+        padding: 0 28px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.2s;
+      }
+      .search-box button:hover {
+        background: #5a0000;
+      }
+      .search-box button:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+      .loading-spinner {
+        display: none;
+        width: 16px;
+        height: 16px;
+        border: 2px solid #ffffff;
+        border-top: 2px solid transparent;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin-right: 8px;
+      }
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+      .card {
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        margin-top: 2em;
+        padding: 2em 1.5em 1.5em 1.5em;
+      }
+      .tabs {
+        display: flex;
+        gap: 1em;
+        margin-bottom: 1em;
+        align-items: center;
+      }
+      .tab {
+        cursor: pointer;
+        padding: 0.5em 1.3em 0.5em 1.3em;
+        border-radius: 6px 6px 0 0;
+        background: none;
+        color: #222;
+        border: none;
+        border-bottom: 2px solid transparent;
+        font-weight: 500;
+        font-size: 1rem;
+        transition: color 0.2s, border-bottom 0.2s;
+      }
+      .tab.active {
+        color: #7a0000;
+        border-bottom: 2px solid #7a0000;
+        background: none;
+        font-weight: bold;
+      }
+      .tab-content {
+        background: #fff;
+        border-radius: 0 0 12px 12px;
+        padding: 1.2em 1em 1em 1em;
+      }
+      .summary {
+        margin-bottom: 1em;
+        font-size: 1.2rem;
+        color: #230000;
+        font-weight: 500;
+      }
+      .spam-results-box {
+        background: #f8f8fa;
+        border: 1.5px solid var(--border);
+        border-radius: 8px;
+        padding: 1.5rem 1rem;
+        font-family: "Fira Mono", "Consolas", "Courier New", monospace;
+        font-size: 1.01rem;
+        color: #222;
+        white-space: pre-wrap;
+        overflow-x: auto;
+        max-height: 420px;
+        min-height: 120px;
+      }
+      .spam-loading {
+        text-align: center;
+        color: #7a0000;
+        font-weight: 600;
+        margin: 1.5rem 0;
+      }
+      .spam-error {
+        background: #fee;
+        color: var(--error);
+        border-left: 4px solid var(--error);
+        padding: 1rem;
+        border-radius: 6px;
+        margin-bottom: 1rem;
+        text-align: center;
+      }
+      .error-message {
+        background: #f8d7da;
+        color: #721c24;
+        padding: 12px 16px;
+        border-radius: 6px;
+        border-left: 4px solid #dc3545;
+        margin: 16px 0;
+        display: none;
+      }
+      .json-view {
+        background: #f8f9fa;
+        border: 1px solid #e9ecef;
+        border-radius: 6px;
+        padding: 16px;
+        font-family: "Courier New", monospace;
+        font-size: 0.9rem;
+        white-space: pre-wrap;
+        overflow-x: auto;
+      }
+      .json-content {
+        background: #f8f9fa;
+        color: #222;
+        padding: 16px;
+        border-radius: 6px;
+        font-family: "Courier New", monospace;
+        font-size: 0.9rem;
+        line-height: 1.5;
+        overflow-x: auto;
+        white-space: pre-wrap;
+        max-height: 500px;
+        overflow-y: auto;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 8px;
+      }
+      th,
+      td {
+        text-align: left;
+        padding: 12px 8px;
+      }
+      th {
+        background: #f3f4f6;
+        color: #444;
+        font-weight: 600;
+        border-bottom: 1px solid #e5e7eb;
+      }
+      tr:nth-child(even) {
+        background: #fafbfc;
+      }
+      tr:hover {
+        background: #f1f5f9;
+      }
+      .status-listed {
+        color: #fff;
+        background-color: #dc3545;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 0.85rem;
+        font-weight: 600;
+      }
+      .status-clean {
+        color: #fff;
+        background-color: #28a745;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 0.85rem;
+        font-weight: 600;
+      }
+      .details-btn {
+        background: #007bff;
+        color: #fff;
+        border: none;
+        border-radius: 4px;
+        padding: 4px 8px;
+        cursor: pointer;
+        font-size: 0.85rem;
+        transition: background 0.2s;
+      }
+      .details-btn:hover {
+        background: #0056b3;
+      }
+      #header-include header h1 a {
+        color: #fff !important;
+      }
+      #header-include header {
+        text-align: center !important;
+      }
+      #header-include header h1 {
+        text-align: center !important;
+      }
+      @media (max-width: 768px) {
+        .container {
+          margin: 15px;
+          padding: 20px;
+        }
+        .search-box {
+          flex-direction: column;
+        }
+        .tabs {
+          gap: 16px;
+        }
+        .spam-results-box {
+          font-size: 0.97rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="header-include"></div>
+    <div class="container">
+      <h1>Spam Database Lookup</h1>
+      <div class="desc">
+        Ultra-fast spam database checker with 10 major DNS blacklists. Better
+        and more reliable than ViewDNS with results within 10 seconds.
+      </div>
+
+      <form class="search-box" id="searchForm" autocomplete="off">
+        <input
+          type="text"
+          id="searchInput"
+          placeholder="Enter IP address or domain (e.g., 8.8.8.8 or example.com)"
+          required
+        />
+        <button type="submit" id="searchButton">
+          <span class="loading-spinner" id="loadingSpinner"></span>
+          Check Blacklists
+        </button>
+      </form>
+
+      <div class="error-message" id="errorMessage"></div>
+
+      <div class="card" id="resultsCard" style="display: none">
+        <div class="tabs" id="tabs">
+          <div class="tab active" data-view="table">HTML</div>
+          <div class="tab" data-view="json">JSON</div>
+        </div>
+
+        <div class="tab-content" id="tabContent">
+          <div class="summary" id="resultsHeader"></div>
+
+          <div id="tableView">
+            <table id="resultsTable">
+              <thead>
+                <tr>
+                  <th>BLOCKLIST</th>
+                  <th>STATUS</th>
+                  <th>RESPONSE TIME</th>
+                  <th>CATEGORY</th>
+                </tr>
+              </thead>
+              <tbody id="resultsTableBody"></tbody>
+            </table>
+          </div>
+
+          <div class="json-view" id="jsonView">
+            <div class="json-content" id="jsonContent"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div id="footer-include"></div>
+
+    <script>
+      function escapeHtml(str) {
+        return str.replace(
+          /[&<>"']/g,
+          (t) =>
+            ({
+              "&": "&amp;",
+              "<": "&lt;",
+              ">": "&gt;",
+              '"': "&quot;",
+              "'": "&#39;",
+            }[t] || t)
+        );
+      }
+
+      function getBlacklistCategory(dnsbl) {
+        const spamhaus = [
+          "zen.spamhaus.org",
+          "sbl.spamhaus.org",
+          "xbl.spamhaus.org",
+          "pbl.spamhaus.org",
+          "dbl.spamhaus.org",
+        ];
+        const abuseCh = ["spam.abuse.ch"];
+        const majorProviders = [
+          "bl.spamcop.net",
+          "cbl.abuseat.org",
+          "dnsbl.sorbs.net",
+        ];
+        if (spamhaus.includes(dnsbl)) return "Spamhaus";
+        if (abuseCh.includes(dnsbl)) return "Abuse.ch";
+        if (majorProviders.includes(dnsbl)) return "Major Provider";
+        if (dnsbl.includes("uceprotect")) return "UCEProtect";
+        if (dnsbl.includes("surbl")) return "SURBL";
+        return "Additional";
+      }
+
+      (function () {
+        let currentView = "table",
+          lastQuery = "",
+          lastResult = {};
+
+        const form = document.querySelector(".search-box"),
+          input = form.querySelector("#searchInput"),
+          button = form.querySelector("#searchButton"),
+          spinner = document.querySelector("#loadingSpinner"),
+          resultsCard = document.querySelector("#resultsCard"),
+          tabs = document.querySelectorAll(".tab"),
+          errorMessage = document.querySelector("#errorMessage"),
+          resultsHeader = document.querySelector("#resultsHeader"),
+          resultsTableBody = document.querySelector("#resultsTableBody"),
+          jsonContent = document.querySelector("#jsonContent"),
+          tableView = document.querySelector("#tableView"),
+          jsonView = document.querySelector("#jsonView");
+
+        function setLoading(loading) {
+          button.disabled = loading;
+          spinner.style.display = loading ? "inline-block" : "none";
+          button.textContent = loading
+            ? "Checking Databases..."
+            : "Check Blacklists";
+        }
+
+        function showError(message) {
+          errorMessage.textContent = message;
+          errorMessage.style.display = "block";
+        }
+
+        function hideError() {
+          errorMessage.style.display = "none";
+        }
+
+        function switchTab(view) {
+          currentView = view;
+          tabs.forEach((tab) => {
+            tab.classList.toggle("active", tab.dataset.view === view);
+          });
+
+          if (view === "table") {
+            tableView.style.display = "block";
+            jsonView.style.display = "none";
+          } else {
+            tableView.style.display = "none";
+            jsonView.style.display = "block";
+            renderJsonView();
+          }
+        }
+
+        function renderJsonView() {
+          if (lastResult && lastQuery) {
+            const json = {
+              query: { tool: "spam-database", query: lastQuery },
+              response: lastResult,
+            };
+            jsonContent.textContent = JSON.stringify(json, null, 2);
+          }
+        }
+
+        tabs.forEach((tab) => {
+          tab.onclick = (e) => {
+            e.preventDefault();
+            switchTab(e.target.dataset.view);
+          };
+        });
+
+        form.onsubmit = async (e) => {
+          e.preventDefault();
+          const query = input.value.trim();
+
+          if (!query) {
+            showError("Please enter an IP address or domain to check.");
+            return;
+          }
+
+          setLoading(true);
+          hideError();
+
+          try {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 8000);
+
+            const resp = await fetch(
+              `backend.php?query=${encodeURIComponent(query)}`,
+              { signal: controller.signal }
+            );
+
+            clearTimeout(timeoutId);
+            const result = await resp.json();
+
+            if (result.error) {
+              showError(result.error);
+              return;
+            }
+
+            lastQuery = query;
+            lastResult = result;
+            resultsCard.style.display = "block";
+            renderResults(query, result);
+          } catch (error) {
+            if (error.name === "AbortError") {
+              showError("Request timed out. Please try again.");
+            } else {
+              showError(
+                "An error occurred while checking the blacklists. Please try again."
+              );
+            }
+            console.error("Error:", error);
+          } finally {
+            setLoading(false);
+          }
+        };
+
+        function renderResults(query, result) {
+          if (!query) return;
+
+          const response = result.response || result;
+
+          resultsHeader.innerHTML = `Spam database lookup results for '${escapeHtml(
+            response.resolved_ip || query
+          )}' (${escapeHtml(query)})`;
+
+          if (currentView === "json") {
+            renderJsonView();
+          } else {
+            resultsTableBody.innerHTML = "";
+
+            if (Array.isArray(response.results)) {
+              response.results.forEach((row) => {
+                const tr = document.createElement("tr");
+                const dnsblTd = document.createElement("td");
+                dnsblTd.textContent = row.dnsbl.toUpperCase();
+                tr.appendChild(dnsblTd);
+                const statusTd = document.createElement("td");
+                const statusSpan = document.createElement("span");
+                statusSpan.textContent = row.listed ? "LISTED" : "NOT LISTED";
+                statusSpan.className = row.listed
+                  ? "status-listed"
+                  : "status-clean";
+                statusTd.appendChild(statusSpan);
+                tr.appendChild(statusTd);
+                const responseTimeTd = document.createElement("td");
+                responseTimeTd.textContent = row.response_time
+                  ? `${row.response_time}ms`
+                  : "N/A";
+                tr.appendChild(responseTimeTd);
+                const categoryTd = document.createElement("td");
+                const category = getBlacklistCategory(row.dnsbl);
+                categoryTd.textContent = category;
+                tr.appendChild(categoryTd);
+                resultsTableBody.appendChild(tr);
+              });
+            }
+          }
+        }
+
+        ["header", "footer"].forEach((id) => {
+          fetch(`../${id}.html`)
+            .then((r) => r.text())
+            .then((html) => {
+              document.getElementById(`${id}-include`).innerHTML = html;
+            })
+            .catch((error) => {
+              console.error(`Error loading ${id}:`, error);
+            });
+        });
+      })();
+    </script>
+  </body>
+</html>

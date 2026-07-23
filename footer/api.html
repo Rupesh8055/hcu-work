@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>API Access - Cyber Jagrithi</title>
+    <link
+      href="https:
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        background-color: #f9fafb;
+        color: #2b0000;
+        line-height: 1.6;
+        min-height: 100vh;
+        margin: 0;
+        font-family: "Roboto", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .api-container {
+        max-width: 1100px;
+        margin: 30px auto;
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        padding: 32px 32px 24px 32px;
+      }
+      .api-section {
+        margin-bottom: 40px;
+      }
+      .api-section:last-child {
+        margin-bottom: 0;
+      }
+      .api-section h2 {
+        color: #7a0000;
+        font-size: 1.8rem;
+        font-weight: 600;
+        margin-bottom: 16px;
+      }
+      .api-section p,
+      .api-section ul {
+        color: #4b5563;
+        line-height: 1.6;
+        margin-bottom: 16px;
+      }
+      .api-section ul {
+        padding-left: 24px;
+      }
+      .api-section li {
+        margin-bottom: 8px;
+      }
+      .api-code {
+        background: #f8fafc;
+        border-left: 4px solid #7a0000;
+        padding: 18px;
+        border-radius: 0 8px 8px 0;
+        font-family: "Roboto", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        font-size: 1rem;
+        margin: 18px 0;
+        color: #1f2937;
+      }
+      .contact-info {
+        background: #f8fafc;
+        padding: 24px;
+        border-radius: 8px;
+        margin-top: 32px;
+      }
+      .contact-info h3 {
+        color: #1f2937;
+        margin-bottom: 16px;
+      }
+      .contact-info p {
+        margin: 8px 0;
+      }
+      .contact-info a {
+        color: #7a0000;
+        text-decoration: none;
+      }
+      .contact-info a:hover {
+        text-decoration: underline;
+      }
+
+
+    </style>
+  </head>
+  <body>
+    <div id="header-include"></div>
+    <main>
+      <div class="api-container">
+        <div class="api-section">
+          <h2>API Access</h2>
+          <p>
+            Integrate Cyber Jagrithi's powerful security and network analysis
+            tools into your own applications, dashboards, or workflows using our
+            robust API. Designed for developers, enterprises, and security teams
+            who need programmatic access to our features.
+          </p>
+        </div>
+        <div class="api-section">
+          <h2>Features</h2>
+          <ul>
+            <li>IP, DNS, and WHOIS lookups</li>
+            <li>Firewall and accessibility tests</li>
+            <li>Network diagnostics (ping, traceroute, port scan)</li>
+            <li>Spam, abuse, and blacklist checks</li>
+            <li>And much more!</li>
+          </ul>
+        </div>
+        <div class="api-section">
+          <h2>How to Use</h2>
+          <p>
+            1. <strong>Request API Access:</strong> Email
+            <a href="mailto:enterprise@cyberjagrithi.com"
+              >enterprise@cyberjagrithi.com</a
+            >
+            with your use case and requirements.<br />2.
+            <strong>Receive API Key:</strong> Approved users will receive an API
+            key and documentation.<br />3.
+            <strong>Start Integrating:</strong> Use our RESTful endpoints in
+            your scripts, apps, or platforms.
+          </p>
+          <div class="api-code">
+            Example (cURL):<br />
+            <code
+              >curl -H "Authorization: Bearer YOUR_API_KEY"
+              https:
+            >
+          </div>
+        </div>
+        <div class="api-section">
+          <h2>Authentication</h2>
+          <p>
+            All API requests require authentication via an API key. Pass your
+            key in the <code>Authorization</code> header as shown above.
+          </p>
+        </div>
+        <div class="api-section">
+          <h2>Pricing & Limits</h2>
+          <p>
+            We offer free and enterprise plans. For high-volume or commercial
+            use, please contact us for custom pricing and SLAs.
+          </p>
+        </div>
+        <div class="api-section contact-info">
+          <h3>Contact for API Support</h3>
+          <p>
+            Email:
+            <a href="mailto:enterprise@cyberjagrithi.com"
+              >enterprise@cyberjagrithi.com</a
+            >
+          </p>
+          <p>
+            Twitter:
+            <a href="https:
+              >@cyberjagrithi</a
+            >
+          </p>
+          <p>
+            LinkedIn:
+            <a href="https:
+              >Cyber Jagrithi</a
+            >
+          </p>
+        </div>
+      </div>
+    </main>
+    <div id="footer-include"></div>
+    <script>
+      ["header", "footer"].forEach((id) => {
+        fetch(`../${id}.html`)
+          .then((r) => r.text())
+          .then((html) => {
+            document.getElementById(`${id}-include`).innerHTML = html;
+          });
+      });
+    </script>
+  </body>
+</html>

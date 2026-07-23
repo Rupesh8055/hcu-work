@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Security Blog - Cyber Jagrithi</title>
+    <link href="https: rel="stylesheet" />
+    <style>
+      body {
+        background-color: #f9fafb;
+        color: #2b0000;
+        line-height: 1.6;
+        min-height: 100vh;
+        margin: 0;
+        font-family: "Roboto", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .blog-container {
+        max-width: 1150px;
+        margin: 30px auto;
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        padding: 32px 32px 24px 32px;
+      }
+      .blog-header {
+        margin-bottom: 32px;
+      }
+      .blog-header h1 {
+        font-size: 2rem;
+        font-weight: 600;
+        margin-bottom: 8px;
+        color: #7a0000;
+      }
+      .blog-header p {
+        color: #555;
+        margin-bottom: 24px;
+      }
+      .blog-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 24px;
+      }
+      .blog-card {
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        overflow: hidden;
+        transition: transform 0.2s, box-shadow 0.2s;
+      }
+      .blog-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      }
+      .blog-image {
+        width: 100%;
+        height: 180px;
+        background: #f3f4f6;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #6b7280;
+      }
+      .blog-content {
+        padding: 20px;
+      }
+      .blog-date {
+        color: #6b7280;
+        font-size: 0.9rem;
+        margin-bottom: 8px;
+      }
+      .blog-title {
+        color: #1f2937;
+        font-size: 1.2rem;
+        font-weight: 600;
+        margin-bottom: 12px;
+      }
+      .blog-excerpt {
+        color: #4b5563;
+        font-size: 0.95rem;
+        line-height: 1.5;
+        margin-bottom: 16px;
+      }
+      .blog-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-bottom: 16px;
+      }
+      .blog-tag {
+        background: #f3f4f6;
+        color: #4b5563;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 0.8rem;
+      }
+      .blog-link {
+        color: #7a0000;
+        text-decoration: none;
+        font-weight: 500;
+        font-size: 0.95rem;
+      }
+      .blog-link:hover {
+        text-decoration: underline;
+      }
+      .categories-sidebar {
+        background: #f8fafc;
+        padding: 20px;
+        border-radius: 8px;
+        margin-bottom: 24px;
+      }
+      .categories-sidebar h3 {
+        color: #1f2937;
+        font-size: 1.1rem;
+        margin-bottom: 12px;
+      }
+      .category-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+      }
+      .category-list li {
+        margin-bottom: 8px;
+      }
+      .category-list a {
+        color: #4b5563;
+        text-decoration: none;
+        font-size: 0.95rem;
+      }
+      .category-list a:hover {
+        color: #7a0000;
+      }
+      .search-box {
+        margin-bottom: 24px;
+      }
+      .search-box input {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid #d1d5db;
+        border-radius: 6px;
+        font-size: 1rem;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+      }
+      .search-box input:focus {
+        outline: none;
+        border-color: #7a0000;
+        box-shadow: 0 0 0 3px rgba(122, 0, 0, 0.1);
+      }
+      @media (max-width: 768px) {
+        .blog-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      @media (max-width: 768px) {
+        header h1 {
+          font-size: 2rem;
+        }
+        header p {
+          font-size: 1rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="header-include"></div>
+    <main>
+      <div class="blog-container">
+        <div class="blog-header">
+          <h1>Security Blog</h1>
+          <p>
+            Stay informed about the latest cybersecurity trends, best practices,
+            and tool usage guides. Our expert team regularly shares insights to
+            help you enhance your security posture.
+          </p>
+        </div>
+
+        <div style="text-align: center; padding: 60px 20px">
+          <h2 style="color: #7a0000; font-size: 2rem; margin-bottom: 20px">
+            Coming Soon
+          </h2>
+          <p
+            style="
+              color: #666;
+              font-size: 1.1rem;
+              max-width: 500px;
+              margin: 0 auto;
+            "
+          >
+            We're working hard to bring you valuable cybersecurity content.
+            Check back soon for expert insights, tutorials, and security best
+            practices.
+          </p>
+        </div>
+      </div>
+    </main>
+    <div id="footer-include"></div>
+    <script>
+      ["header", "footer"].forEach((id) => {
+        fetch(`../${id}.html`)
+          .then((r) => r.text())
+          .then((html) => {
+            document.getElementById(`${id}-include`).innerHTML = html;
+          });
+      });
+    </script>
+  </body>
+</html>

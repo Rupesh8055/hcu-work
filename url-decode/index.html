@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>URL / String Decode Tool</title>
+    <style>
+      body {
+        font-family: Segoe UI, Arial, sans-serif;
+        background: #f6f8fa;
+        margin: 0;
+      }
+      .container {
+        max-width: 1150px;
+        margin: 30px auto;
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        padding: 32px 32px 24px 32px;
+      }
+      h1 {
+        font-size: 2rem;
+        font-weight: 600;
+        margin-bottom: 8px;
+      }
+      .desc {
+        color: #555;
+        margin-bottom: 24px;
+      }
+      .search-box {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 24px;
+      }
+      .search-box input[type="text"] {
+        flex: 1;
+        padding: 12px;
+        border: 1px solid #d1d5db;
+        border-radius: 6px;
+        font-size: 1rem;
+        box-sizing: border-box;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+      }
+      .search-box button {
+        background: #7a0000;
+        color: #fff;
+        border: none;
+        border-radius: 6px;
+        padding: 0 28px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.2s;
+      }
+      .search-box button:hover {
+        background: #5a0000;
+      }
+      .result-section {
+        background: #f8f9fa;
+        border: 1px solid #e9ecef;
+        border-radius: 8px;
+        padding: 20px;
+        margin-top: 24px;
+        display: none;
+      }
+      .result-section h3 {
+        margin-top: 0;
+        margin-bottom: 12px;
+        color: #333;
+      }
+      .result-box {
+        background: #fff;
+        padding: 16px;
+        border-radius: 6px;
+        font-size: 1rem;
+        word-break: break-all;
+        border: 1px solid #dee2e6;
+      }
+
+      #header-include header h1 a {
+        color: #fff !important;
+      }
+      @media (max-width: 600px) {
+        .container {
+          padding: 1em;
+        }
+        .search-box {
+          flex-direction: column;
+          align-items: stretch;
+        }
+        .search-box button {
+          width: 100%;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="header-include"></div>
+    <div class="container">
+      <h1>URL / String Decode Tool</h1>
+      <div class="desc">
+        Decode URL's or strings that contain data in the format '%xx'. For
+        example, '%48%45%4C%4C%4F' decodes to 'HELLO'. Useful in decoding
+        confusing URL's.
+      </div>
+      <form class="search-box" id="decodeForm" autocomplete="off">
+        <input
+          type="text"
+          id="encodedText"
+          placeholder="Enter URL encoded string"
+          required
+          aria-label="URL-encoded text"
+        />
+        <button type="submit">Decode</button>
+      </form>
+      <div class="result-section" id="resultsSection">
+        <h3>Decoded Result:</h3>
+        <div class="result-box" id="decodedResult"></div>
+      </div>
+    </div>
+    <div id="footer-include"></div>
+    <script>
+      (function () {
+        const form = document.getElementById("decodeForm");
+        const input = document.getElementById("encodedText");
+        const resultsSection = document.getElementById("resultsSection");
+        const decodedResult = document.getElementById("decodedResult");
+
+        form.addEventListener("submit", function (e) {
+          e.preventDefault();
+          const encodedText = input.value.trim();
+          if (!encodedText) return;
+
+          try {
+            const decoded = decodeURIComponent(encodedText);
+            decodedResult.textContent = decoded;
+            resultsSection.style.display = "block";
+          } catch (err) {
+            decodedResult.textContent = "Error: Invalid URL-encoded string";
+            resultsSection.style.display = "block";
+          }
+        });
+
+        input.addEventListener("input", function () {
+          const encodedText = input.value.trim();
+          if (encodedText) {
+            try {
+              const decoded = decodeURIComponent(encodedText);
+              decodedResult.textContent = decoded;
+              resultsSection.style.display = "block";
+            } catch (err) {
+
+              resultsSection.style.display = "none";
+            }
+          } else {
+            resultsSection.style.display = "none";
+          }
+        });
+
+        ["header", "footer"].forEach((id) => {
+          fetch(`../${id}.html`)
+            .then((r) => r.text())
+            .then((html) => {
+              document.getElementById(`${id}-include`).innerHTML = html;
+            });
+        });
+      })();
+    </script>
+  </body>
+</html>

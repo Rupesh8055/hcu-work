@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DNS & Domain Analysis Tools - Cyber Jagrithi</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        background-color: #f9fafb;
+        color: #2b0000;
+        line-height: 1.6;
+        min-height: 100vh;
+        margin: 0;
+        font-family: "Roboto", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .dns-container {
+        max-width: 1150px;
+        margin: 30px auto;
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        padding: 32px 32px 24px 32px;
+      }
+      .dns-section {
+        margin-bottom: 40px;
+      }
+      .dns-section:last-child {
+        margin-bottom: 0;
+      }
+      .dns-section h2 {
+        color: #7a0000;
+        font-size: 1.8rem;
+        font-weight: 600;
+        margin-bottom: 16px;
+      }
+      .dns-section p {
+        color: #4b5563;
+        line-height: 1.6;
+        margin-bottom: 16px;
+      }
+      .tools-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 24px;
+        margin: 32px 0;
+      }
+      .tool-card {
+        background: #f8fafc;
+        padding: 24px;
+        border-radius: 8px;
+        border-left: 4px solid #7a0000;
+      }
+      .tool-card h3 {
+        color: #1f2937;
+        font-size: 1.2rem;
+        margin-bottom: 12px;
+        font-weight: 600;
+      }
+      .tool-card p {
+        color: #4b5563;
+        margin-bottom: 16px;
+        font-size: 0.95rem;
+      }
+      .tool-btn {
+        background: #7a0000;
+        color: #fff;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 6px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: background 0.2s;
+        text-decoration: none;
+        display: inline-block;
+        font-size: 0.95rem;
+      }
+      .tool-btn:hover {
+        background: #5a0000;
+      }
+
+      @media (max-width: 768px) {
+        header h1 {
+          font-size: 2rem;
+        }
+        header p {
+          font-size: 1rem;
+        }
+        .tools-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="header-include"></div>
+    <main>
+      <div class="dns-container">
+        <div class="dns-section">
+          <h2>DNS & Domain Analysis Tools</h2>
+          <p>
+            Comprehensive DNS analysis and domain investigation tools for
+            security professionals, network administrators, and cybersecurity
+            researchers. Our tools help you understand domain infrastructure,
+            identify potential security issues, and perform thorough domain
+            reconnaissance.
+          </p>
+        </div>
+
+        <div class="dns-section">
+          <h2>Available Tools</h2>
+          <div class="tools-grid">
+            <div class="tool-card">
+              <h3>DNS Record Lookup</h3>
+              <p>
+                View all configured DNS records (A, MX, CNAME, TXT, etc.) for
+                any domain. Essential for understanding domain configuration and
+                identifying potential issues.
+              </p>
+              <a href="../dns-lookup/" class="tool-btn">Use Tool</a>
+            </div>
+
+            <div class="tool-card">
+              <h3>DNS Propagation Checker</h3>
+              <p>
+                Check DNS propagation across multiple global servers to ensure
+                your DNS changes have propagated worldwide and identify any
+                propagation delays.
+              </p>
+              <a href="../dns-propagation/" class="tool-btn">Use Tool</a>
+            </div>
+
+            <div class="tool-card">
+              <h3>DNSSEC Testing</h3>
+              <p>
+                Test DNSSEC implementation and validation for domains. Verify
+                that DNS Security Extensions are properly configured and
+                working.
+              </p>
+              <a href="../dnssec-test/" class="tool-btn">Use Tool</a>
+            </div>
+
+            <div class="tool-card">
+              <h3>DNS Report Generator</h3>
+              <p>
+                Generate comprehensive DNS reports including all records,
+                security analysis, and recommendations for improving domain
+                security.
+              </p>
+              <a href="../dns-report/" class="tool-btn">Use Tool</a>
+            </div>
+
+            <div class="tool-card">
+              <h3>Reverse DNS Lookup</h3>
+              <p>
+                Perform reverse DNS lookups to find domain names associated with
+                IP addresses. Useful for network reconnaissance and security
+                investigations.
+              </p>
+              <a href="../reverse-dns/" class="tool-btn">Use Tool</a>
+            </div>
+
+            <div class="tool-card">
+              <h3>WHOIS Lookup</h3>
+              <p>
+                Retrieve domain registration information including owner
+                details, registration dates, and contact information for any
+                domain or IP address.
+              </p>
+              <a href="../whois-lookup/" class="tool-btn">Use Tool</a>
+            </div>
+
+            <div class="tool-card">
+              <h3>Reverse WHOIS Lookup</h3>
+              <p>
+                Find all domains registered by a specific person, organization,
+                or email address. Powerful tool for domain reconnaissance and
+                brand protection.
+              </p>
+              <a href="../reverse-whois-lookup/" class="tool-btn">Use Tool</a>
+            </div>
+
+            <div class="tool-card">
+              <h3>Nameserver Sites</h3>
+              <p>
+                Discover all websites hosted on specific nameservers. Useful for
+                understanding hosting infrastructure and identifying related
+                domains.
+              </p>
+              <a href="../nameserver-sites/" class="tool-btn">Use Tool</a>
+            </div>
+          </div>
+        </div>
+
+        <div class="dns-section">
+          <h2>Use Cases</h2>
+          <ul>
+            <li>
+              <strong>Security Audits:</strong> Identify misconfigured DNS
+              records and potential security vulnerabilities
+            </li>
+            <li>
+              <strong>Domain Reconnaissance:</strong> Gather comprehensive
+              information about target domains
+            </li>
+            <li>
+              <strong>Network Mapping:</strong> Understand domain infrastructure
+              and relationships
+            </li>
+            <li>
+              <strong>Brand Protection:</strong> Monitor domain registrations
+              and identify potential threats
+            </li>
+            <li>
+              <strong>Compliance:</strong> Ensure DNS security compliance and
+              best practices
+            </li>
+          </ul>
+        </div>
+      </div>
+    </main>
+    <div id="footer-include"></div>
+    <script>
+      ["header", "footer"].forEach((id) => {
+        fetch(`../${id}.html`)
+          .then((r) => r.text())
+          .then((html) => {
+            document.getElementById(`${id}-include`).innerHTML = html;
+          });
+      });
+    </script>
+  </body>
+</html>

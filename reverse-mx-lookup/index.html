@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Reverse MX Lookup</title>
+    <style>
+      body {
+        font-family: Segoe UI, Arial, sans-serif;
+        background: #f6f8fa;
+        margin: 0;
+      }
+      .container {
+        max-width: 1150px;
+        margin: 30px auto;
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        padding: 32px 32px 24px 32px;
+        margin-top: 2rem;
+        margin-bottom: 32px;
+      }
+      h1 {
+        font-size: 2rem;
+        font-weight: 600;
+        margin-bottom: 8px;
+      }
+      .desc {
+        color: #555;
+        margin-bottom: 24px;
+      }
+      .search-box {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 24px;
+      }
+      .search-box input {
+        flex: 1;
+        padding: 12px;
+        border: 1px solid #d1d5db;
+        border-radius: 6px;
+        font-size: 1rem;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+      }
+      .search-box button {
+        background: #7a0000;
+        color: #fff;
+        border: none;
+        border-radius: 6px;
+        padding: 0 28px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+        transition: background 0.2s;
+      }
+      .search-box button:hover {
+        background: #5a0000;
+      }
+      .tabs {
+        display: flex;
+        gap: 24px;
+        border-bottom: 1px solid #e5e7eb;
+        margin-bottom: 0;
+        background: #fff;
+        border-radius: 12px 12px 0 0;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        padding: 0 32px;
+      }
+      .tab {
+        padding: 12px 0;
+        font-weight: 500;
+        color: #222;
+        cursor: pointer;
+        border-bottom: 2px solid transparent;
+        text-decoration: none;
+      }
+      .tab.active {
+        border-bottom: 2px solid #7a0000;
+        color: #7a0000;
+      }
+      .results-header {
+        font-size: 1.2rem;
+        font-weight: 500;
+        margin: 24px 0 8px 0;
+      }
+      .results-count {
+        color: #666;
+        font-size: 1rem;
+        margin-bottom: 16px;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 8px;
+      }
+      th,
+      td {
+        text-align: left;
+        padding: 12px 8px;
+      }
+      th {
+        background: #f3f4f6;
+        color: #444;
+        font-weight: 600;
+        border-bottom: 1px solid #e5e7eb;
+      }
+      tr:nth-child(even) {
+        background: #fafbfc;
+      }
+      tr:hover {
+        background: #f1f5f9;
+      }
+      .domain {
+        font-weight: 500;
+      }
+      .error-msg {
+        color: #b91c1c;
+        background: #fee2e2;
+        padding: 12px 16px;
+        border-radius: 6px;
+        margin-bottom: 16px;
+        font-weight: 500;
+      }
+      .tab-btns {
+        position: absolute;
+        top: 24px;
+        right: 32px;
+        display: flex;
+        gap: 12px;
+      }
+      .tab-btns span {
+        opacity: 0.4;
+        cursor: not-allowed;
+        display: inline-block;
+        font-size: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="header-include"></div>
+    <div id="app">
+      <div class="container">
+        <h1>Reverse MX Lookup</h1>
+        <div class="desc">
+          Takes a mail server (e.g. mail.google.com) and quickly shows all other
+          domains that use the same mail server. Useful for identifying domains
+          that are used as email aliases.
+        </div>
+        <form class="search-box" autocomplete="off">
+          <input
+            type="text"
+            placeholder="Enter mail server (e.g. mail.google.com)"
+            required
+          />
+          <button type="submit">Lookup</button>
+        </form>
+        <div class="tabs" style="display: none">
+          <a href="#" class="tab active">HTML</a>
+          <a href="#" class="tab">JSON</a>
+        </div>
+        <div
+          class="results"
+          style="
+            position: relative;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            border-radius: 0 0 12px 12px;
+            background: #fff;
+            padding: 32px 32px 16px 32px;
+            margin-bottom: 32px;
+            display: none;
+          "
+        >
+          <div class="tab-btns">
+            <span title="Copy">📋</span><span title="Download">⬇️</span>
+          </div>
+          <div class="results-content"></div>
+        </div>
+      </div>
+    </div>
+    <div id="footer-include"></div>
+    <script>
+      (function () {
+        let tab = "html";
+        let lastQuery = "";
+        let lastResult = null;
+        const container = document.querySelector(".container");
+        const form = container.querySelector(".search-box");
+        const input = form.querySelector("input");
+        const tabsDiv = container.querySelector(".tabs");
+        const htmlTab = tabsDiv.querySelectorAll(".tab")[0];
+        const jsonTab = tabsDiv.querySelectorAll(".tab")[1];
+        const resultsDiv = container.querySelector(".results");
+        const resultsContent = resultsDiv.querySelector(".results-content");
+        function renderResults(result) {
+          resultsContent.innerHTML = "";
+          if (result.error) {
+            resultsContent.innerHTML = `<div class=\"error-msg\">${result.error}</div>`;
+            tabsDiv.style.display = "none";
+            resultsDiv.style.display = "none";
+            return;
+          }
+          if (!result.showResults) {
+            tabsDiv.style.display = "none";
+            resultsDiv.style.display = "none";
+            return;
+          }
+          tabsDiv.style.display = "";
+          resultsDiv.style.display = "";
+          const header = document.createElement("div");
+          header.className = "results-header";
+          header.textContent = `Reverse MX results for '${result.mx_domain}'`;
+          resultsContent.appendChild(header);
+          const count = document.createElement("div");
+          count.className = "results-count";
+          count.textContent = `Found ${result.filtered.length} domains using this mail server.`;
+          resultsContent.appendChild(count);
+          if (tab === "json") {
+            const json = {
+              query: { tool: "reverse-mx-lookup", mailserver: lastQuery },
+              response: {
+                domain_count: result.filtered.length,
+                domains: result.filtered,
+              },
+            };
+            const pre = document.createElement("pre");
+            pre.style.background = "#f3f4f6";
+            pre.style.padding = "16px 16px 56px 16px";
+            pre.style.borderRadius = "8px";
+            pre.style.overflow = "auto";
+            pre.style.maxHeight = "320px";
+            pre.style.fontSize = "1rem";
+            pre.style.boxShadow = "none";
+            pre.style.margin = "0";
+            pre.textContent = JSON.stringify(json, null, 2);
+            resultsContent.appendChild(pre);
+          } else {
+            const table = document.createElement("table");
+            table.innerHTML =
+              '<tr><th style="background:#f3f4f6;font-size:0.95rem;color:#6b7280;font-weight:500;letter-spacing:0.04em;">DOMAIN NAME</th></tr>';
+            result.filtered.forEach((domain) => {
+              const tr = document.createElement("tr");
+              const td = document.createElement("td");
+              td.className = "domain";
+              td.textContent = domain;
+              tr.appendChild(td);
+              table.appendChild(tr);
+            });
+            resultsContent.appendChild(table);
+          }
+        }
+        async function fetchResults(mx) {
+          const originalTitle = document.title;
+          document.title = "Loading... - Reverse MX Lookup";
+          try {
+            console.log("Fetching results for:", mx);
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 15000);
+
+            const resp = await fetch(
+              `backend.php?mx=${encodeURIComponent(mx)}`,
+              { signal: controller.signal }
+            );
+
+            clearTimeout(timeoutId);
+
+            if (!resp.ok) {
+              throw new Error(`HTTP error! status: ${resp.status}`);
+            }
+
+            const data = await resp.json();
+            console.log("Response data:", data);
+            lastResult = {
+              error: data.response.error,
+              showResults:
+                !data.response.error && data.response.domains.length > 0,
+              mx_domain: data.response.mx_domain,
+              filtered: data.response.domains,
+            };
+            console.log("Processed result:", lastResult);
+            renderResults(lastResult);
+            tabsDiv.style.display = lastResult.showResults ? "" : "none";
+            document.title = originalTitle;
+          } catch (e) {
+            console.error("Fetch error:", e);
+            if (e.name === "AbortError") {
+              resultsContent.innerHTML =
+                '<div class="error-msg">Request timed out. Please try again.</div>';
+            } else {
+              resultsContent.innerHTML =
+                '<div class="error-msg">Error fetching results. Please try again or check your internet connection.</div>';
+            }
+            tabsDiv.style.display = "none";
+            document.title = originalTitle;
+          }
+        }
+        htmlTab.addEventListener("click", function (e) {
+          e.preventDefault();
+          tab = "html";
+          htmlTab.classList.add("active");
+          jsonTab.classList.remove("active");
+          if (lastResult) renderResults(lastResult);
+        });
+        jsonTab.addEventListener("click", function (e) {
+          e.preventDefault();
+          tab = "json";
+          jsonTab.classList.add("active");
+          htmlTab.classList.remove("active");
+          if (lastResult) renderResults(lastResult);
+        });
+        form.addEventListener("submit", function (e) {
+          e.preventDefault();
+          const mx = input.value.trim();
+          if (!mx) {
+            resultsContent.innerHTML =
+              '<div class="error-msg">Please enter a mail server domain.</div>';
+            resultsDiv.style.display = "";
+            tabsDiv.style.display = "none";
+            return;
+          }
+
+          const domainRegex =
+            /^[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?)*$/;
+          if (!domainRegex.test(mx)) {
+            resultsContent.innerHTML =
+              '<div class="error-msg">Please enter a valid domain format (e.g., mail.google.com).</div>';
+            resultsDiv.style.display = "";
+            tabsDiv.style.display = "none";
+            return;
+          }
+
+          const button = form.querySelector("button");
+          const originalButtonText = button.textContent;
+          button.textContent = "Loading...";
+          button.disabled = true;
+
+          lastQuery = mx;
+          tab = "html";
+          htmlTab.classList.add("active");
+          jsonTab.classList.remove("active");
+
+          fetchResults(mx).finally(() => {
+            button.textContent = originalButtonText;
+            button.disabled = false;
+          });
+        });
+      })();
+    </script>
+    <script>
+      ["header", "footer"].forEach((id) => {
+        fetch(`../${id}.html`)
+          .then((r) => r.text())
+          .then((html) => {
+            document.getElementById(`${id}-include`).innerHTML = html;
+          })
+          .catch((error) => {
+            console.error(`Error loading ${id}:`, error);
+          });
+      });
+    </script>
+  </body>
+</html>

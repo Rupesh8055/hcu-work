@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Global Ping Test</title>
+    <style>
+      body {
+        font-family: Segoe UI, Arial, sans-serif;
+        background: #f6f8fa;
+        margin: 0;
+      }
+      .container {
+        max-width: 1150px;
+        margin: 30px auto;
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        padding: 32px 32px 24px 32px;
+      }
+      h1 {
+        font-size: 2rem;
+        font-weight: 600;
+        margin-bottom: 8px;
+      }
+      .desc {
+        color: #555;
+        margin-bottom: 24px;
+      }
+      .search-box {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 24px;
+      }
+      .search-box input {
+        flex: 1;
+        padding: 12px;
+        border: 1px solid #d1d5db;
+        border-radius: 6px;
+        font-size: 1rem;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+      }
+      .search-box button {
+        background: #7a0000;
+        color: #fff;
+        border: none;
+        border-radius: 6px;
+        padding: 0 28px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.2s;
+      }
+      .search-box button:hover {
+        background: #5a0000;
+      }
+      .tabs {
+        display: flex;
+        gap: 24px;
+        border-bottom: 1px solid #e5e7eb;
+        margin-bottom: 0;
+      }
+      .tab {
+        padding: 12px 0;
+        font-weight: 500;
+        color: #222;
+        cursor: pointer;
+        border-bottom: 2px solid transparent;
+        text-decoration: none;
+      }
+      .tab.active {
+        border-bottom: 2px solid #7a0000;
+        color: #7a0000;
+      }
+      .results-header {
+        font-size: 1.2rem;
+        font-weight: 500;
+        margin: 24px 0 8px 0;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 8px;
+      }
+      th,
+      td {
+        text-align: left;
+        padding: 12px 8px;
+      }
+      th {
+        background: #f3f4f6;
+        color: #444;
+        font-weight: 600;
+        border-bottom: 1px solid #e5e7eb;
+      }
+      tr:nth-child(even) {
+        background: #fafbfc;
+      }
+      tr:hover {
+        background: #f1f5f9;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="header-include"></div>
+    <div class="container">
+      <h1>Global Ping Test</h1>
+      <div class="desc">
+        Measure network latency from multiple international locations to your
+        server. Valuable for evaluating global performance, troubleshooting
+        regional access issues, and CDN optimization.
+      </div>
+      <form class="search-box" autocomplete="off">
+        <input
+          type="text"
+          name="host"
+          placeholder="Enter hostname or IP (e.g. example.com)"
+          required
+        />
+        <button type="submit">Ping</button>
+      </form>
+      <div class="tabs" style="display: none">
+        <a href="#" class="tab active">HTML</a>
+        <a href="#" class="tab">JSON</a>
+      </div>
+      <div class="results" style="display: none"></div>
+    </div>
+    <div id="footer-include"></div>
+    <script>
+      function escapeHtml(str) {
+        return str.replace(
+          /[&<>"']/g,
+          (t) =>
+            ({
+              "&": "&amp;",
+              "<": "&lt;",
+              ">": "&gt;",
+              '"': "&quot;",
+              "'": "&#39;",
+            }[t] || t)
+        );
+      }
+      (function () {
+        let currentTab = "html",
+          lastQuery = "",
+          lastPings = [];
+        const form = document.querySelector(".search-box"),
+          input = form.querySelector("input"),
+          tabs = document.querySelector(".tabs"),
+          htmlTab = tabs.querySelectorAll(".tab")[0],
+          jsonTab = tabs.querySelectorAll(".tab")[1],
+          resultsDiv = document.querySelector(".results");
+        function switchTab(tab) {
+          currentTab = tab;
+          htmlTab.className = "tab" + (tab === "html" ? " active" : "");
+          htmlTab.style.borderBottom =
+            tab === "html" ? "2px solid #7a0000" : "2px solid transparent";
+          htmlTab.style.color = tab === "html" ? "#7a0000" : "#222";
+          jsonTab.className = "tab" + (tab === "json" ? " active" : "");
+          jsonTab.style.borderBottom =
+            tab === "json" ? "2px solid #7a0000" : "2px solid transparent";
+          jsonTab.style.color = tab === "json" ? "#7a0000" : "#222";
+          renderResults(lastQuery, lastPings);
+        }
+        htmlTab.onclick = (e) => {
+          e.preventDefault();
+          switchTab("html");
+        };
+        jsonTab.onclick = (e) => {
+          e.preventDefault();
+          switchTab("json");
+        };
+        form.onsubmit = async (e) => {
+          e.preventDefault();
+          const query = input.value.trim();
+          if (!query) return;
+          const resp = await fetch(
+            `/global-ping/backend.php?host=${encodeURIComponent(query)}`
+          );
+          const data = await resp.json();
+          const pings = [];
+          lastQuery = query;
+          lastPings = pings;
+          tabs.style.display = "flex";
+          resultsDiv.style.display = "block";
+          renderResults(query, pings);
+        };
+        function renderResults(query, pings) {
+          resultsDiv.innerHTML = "";
+          if (!query) return;
+          const header = document.createElement("div");
+          header.className = "results-header";
+          header.innerHTML = `Ping Results for <b>${escapeHtml(query)}</b>`;
+          resultsDiv.appendChild(header);
+          if (currentTab === "json") {
+            const json = {
+              query: { tool: "global-ping", host: query },
+              response: pings,
+            };
+            const pre = document.createElement("pre");
+            pre.textContent = JSON.stringify(json, null, 2);
+            pre.style.background = "#f3f4f6";
+            pre.style.padding = "16px";
+            pre.style.borderRadius = "8px";
+            pre.style.overflow = "auto";
+            pre.style.maxHeight = "420px";
+            pre.style.fontSize = "1rem";
+            pre.style.boxShadow = "none";
+            pre.style.margin = "0";
+            resultsDiv.appendChild(pre);
+          } else {
+            const table = document.createElement("table");
+            table.innerHTML =
+              "<thead><tr><th>Location</th><th>IP Address</th><th>Status</th><th>Latency (ms)</th></tr></thead>";
+            const tbody = document.createElement("tbody");
+            if (Array.isArray(pings)) {
+              pings.forEach((row) => {
+                const tr = document.createElement("tr");
+                ["location", "ip", "status", "latency"].forEach((key) => {
+                  const td = document.createElement("td");
+                  td.textContent = row[key] || "";
+                  tr.appendChild(td);
+                });
+                tbody.appendChild(tr);
+              });
+            }
+            table.appendChild(tbody);
+            resultsDiv.appendChild(table);
+          }
+        }
+        renderResults("", []);
+      })();
+
+      ["header", "footer"].forEach((id) => {
+        fetch(`../${id}.html`)
+          .then((r) => r.text())
+          .then((html) => {
+            document.getElementById(`${id}-include`).innerHTML = html;
+          });
+      });
+    </script>
+  </body>
+</html>
